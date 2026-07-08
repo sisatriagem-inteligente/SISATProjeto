@@ -1,0 +1,186 @@
+/* Centralizando o cartão na tela inteira */
+.login-container-medico {
+  display: flex;               /*ativa o modo flex box, transformando um elemento em um container flexível. Isso alinha automaticamente os filhos diretos (itens flex) em uma linha, facilitando o alinhamento, distribuição de espaço e criação de layouts responsivos sem usar floats ou posicionamentos complexos */
+  justify-content: center;     /*alinha itens no eixo principal (geralmente horizontal) de um conteiner flexbox ou grid, distribuindo o espaço extra. centraliza os itens. */ 
+  align-items: center;         /*centraliza os itens verticalmente. usada no container pai para controlar o alinhaemnto vertical geral.*/ 
+  min-height: 100vh;           /*coloca a altura minima de um elemento, garantindo que ele nunca seja menor que um valor especifico enquanto permite que ele aumente naturalmente caso o conteudo exceda essa altura */
+              /*↓→ nesse caso, 100vh é igual à altura exata do navegador do usuário no momento que ele acessa a aplicação */
+ 
+  background: #E6FAFF;
+  background: radial-gradient(circle,rgba(230, 250, 255, 1) 20%, rgba(184, 242, 255, 1) 60%, rgba(107, 228, 255, 0.96) 96%);
+}
+
+/*o "cartão" branco principal */
+.login-card {
+  background: #ffffff; 
+  padding: 40px;                                   /* cria um espaçamento interno entre o conteúdo de um elemento e sua borda. afasta o conteúdo das extremidades da caixa, aumentando a area interna sem alterar o tamanho do elemento externo, a menos que o box-sizing esteja configurado como content-box */ 
+  border-radius: 12px;                             /* arredonda os cantos de elementos */ 
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);   /*sombra bem suave. adiciona sombras a elementos, aceitando valores de deslocamento (X,Y), desfoque (blur), espelhamento (spread) e cor. A sintaxe básica é box-shadow: offset-x offset-y blut spread color inset; . pode-se criar sombras externas (padrao) cou internas usando a palavra-chave inset */
+  width: 100%;
+  max-width: 400px;                                /* define a largura maxima de um elemento, impedindo que ele ultrapasse um determinado tamanho de telas grandes, enquanto permanece responsivo em telas menores. evita que textos fiquem muito longos e imagens se deformem */ 
+  transform: scale(1.1);                           /* dá um "zoom" */
+}
+
+/* --- Cabeçalho ---*/
+.login-header{
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+/* --- Nossa logo ---  */
+.logo-image{
+  width: 86px;            /* ajustando o tamanho da logo */
+  height: 86px;
+  object-fit: contain;    /* garante que a logo nao vai ficar esticada ou achatada*/ 
+  margin: 0 auto 16px;
+  display: block;         /* ajuda a centralizar com a margem automática (auto)*/
+}
+
+.login-header h2{
+  font-size: 24px;
+   color: #21AFDE;      
+  margin-bottom: 8px;
+}
+
+.login-header p{
+  color: #6b7280;
+  font-size: 14px;
+}
+
+/* --- Formulário e Inputs --- */
+.login-form {
+  display: flex;
+  flex-direction: column;           /* define a direção (linha ou coluna) e a ordem (normal ou invertida) dos itens dentro de um conteiner flexbox */
+  gap: 16px;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.input-group label{
+  font-size: 14px;
+  font-weight: 500;
+  color: #25BFD9;
+}
+
+.input-group input{
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+  outline: none; 
+  transition: border-color 1s;
+}
+
+/* ---- VER SENHA --- */
+
+/* DIV que funciona como âncora → seguira o input e o olhinho*/
+.password-wrapper{
+  position: relative;                 /* garante que itens absolutos dentro dele não possam sair das bordas*/
+  display: flex;
+  width: 100%; 
+}
+
+/* Parte que deixa um espacinho extra na direita pro input da senha pro texto não ficar por baixo do ícone */
+.password-wrapper input{
+  width: 100%;
+  padding-right: 40px;                /* empurra O TEXTO um pouco pra esquerda */ 
+}
+
+/* Parte do olhinho em si (o ícone) */
+.password-wrapper i{
+  position: absolute;                 /*tira o ícone do fluxo normal, permitindo que ele fique posicionado livremente */ 
+  right: 12px;                        /* gruda o ícone no lado direito da div âncora */
+  top: 50%;                           /* desce o ícone até a metade*/
+  transform: translateY(-50%);        /* aplica uma transformação 2D ou 3D em um elemento. permite rotacionar, dimensionar, mover, distorcer etc. esse translateY define uma translação usando o valor do eixo Y (de pé) */
+  cursor: pointer;
+  color: #21AFDE;
+  font-size: 16px;
+}
+
+/* hover do olhinho */ 
+.password-wrapper i:hover{
+  color: #71DAEA;
+}
+
+/* ---- FIM DO VER SENHA --- */
+
+/* --- Borda colorida ao clicar nos inputs --- */
+.input-group input:focus{
+  border-color: #5fd0ec;
+}
+
+/* --- Botão de cadastro principal ---*/
+.submit-btn{
+  width: 100%;
+  padding: 12px;
+   background-color: #81daf5; /* */
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 8px;
+  transition: background-color 0.2s;
+}
+
+.submit-btn:hover{
+  background-color: #4db9da; 
+}
+
+
+
+/* ----- parte para dispositivos móveis (ativa quando a tela é menor que 768px) ------- */
+
+@media(max-width: 768px){ /* 768px abrange tanto os celulares quanto os tablets*/
+  
+  .login-container {
+    display: flex;               
+    justify-content: center;     
+    align-items: center;         
+    min-height: 100vh;           
+    background: linear-gradient(90deg,rgba(112, 205, 255, 1) 0%, rgba(176, 251, 255, 1) 54%, rgba(112, 205, 255, 1) 100%);
+  }
+
+  /*o "cartão" branco principal */
+  .login-card {
+    background-color: #ffffff;
+    padding: 20px;                                   
+    border-radius: 12px;                             
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);  
+    height:fit-content;
+    max-width: 90%;                                  /*coloquei pra ocupar 90% da largura da tela para nao ficar muito grudada na ponta e nao perder espaço ficando fina demais. ela é reponsiva e muda conforme a largura.*/
+    transform: scale(1.01);                          /* tira um pouco do zoom, deixando o espaço um pouco menor*/
+  }
+
+  /* --- Cabeçalho ---*/
+  .login-header{
+    text-align: center;
+    margin-bottom: 20px;
+  }
+
+  /* --- Nossa logo ---  */
+  .logo-image{
+    width: 68px;            
+    height: 70px;
+    object-fit: contain;    /* garante que a logo nao vai ficar esticada ou achatada*/ 
+    margin: 0 auto 16px;
+    display: block;         /* ajuda a centralizar com a margem automática (auto)*/
+  }
+
+  .login-header h2{
+    font-size: 20px;
+    color: #21AFDE;      
+    margin-bottom: 8px;
+  }
+
+  .login-header p{
+    color: #6b7280;
+    font-size: 14px;
+    font-weight: 420;
+  }
+}
