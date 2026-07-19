@@ -1,12 +1,19 @@
-import { useState } from 'react';
+import { useState, type FormEvent } from 'react';
 import '/src/pages/Auth.css';
 //importando a imagem da logo do sisat ↓
 import logoImg from '/src/assets/img/logoMaisGrossa.png'
 import { Link } from 'react-router-dom';
 
+import { // importando as funções da api
+  loginPaciente,
+  obterMensagemErro,
+} from '../../services/api';
+
 
 export default function Login(){
-    const [cpf,setCpf] = useState('');
+    const [cpf,setCpf] = useState(''); //criando um estado para o valor do cpf
+    const [password, setPassword] = useState(''); // criando um estado para o valor da senha
+    const [mensagem, setMensagem] = useState(''); // criando um estado para o valor da mensagem
     
     const [mostrarSenha, setMostrarSenha] = useState(false);
 
@@ -26,7 +33,40 @@ export default function Login(){
     //atualiza o estado com o valor formatado
     setCpf(value);
 
+    };
+
+     // Função executada quando o formulário for enviado.
+  async function handleLogin(
+    event: FormEvent<HTMLFormElement>,
+  ) {
+    // Impede que a página recarregue.
+    event.preventDefault();
+
+    // Limpa qualquer mensagem anterior.
+    setMensagem('');
+
+    // Remove os pontos e o traço antes de enviar.
+    const cpfSemMascara = cpf.replace(/\D/g, '');
+
+    try {
+      const resposta = await loginPaciente({
+        cpf: cpfSemMascara,
+        password,
+      });
+
+      // Mostra a mensagem retornada pelo backend.
+      setMensagem(resposta.data.message);
+
+      console.log(
+        'Token salvo:',
+        localStorage.getItem('access_token'),
+      );
+    } catch (erro) {
+      // Mostra a mensagem de erro retornada pelo backend.
+      setMensagem(obterMensagemErro(erro));
     }
+  }
+
   return (
     <div className="login-container">  {/* isso é como se faz um comentario dentro do return (JSX)*/}
       <div className='login-card'>
@@ -39,7 +79,7 @@ export default function Login(){
         </div>
 
        {/* Formulário */}
-       <form className='login-form'>
+       <form className='login-form' onSubmit={handleLogin}> {/*Quando o formulário for enviado vai executar a função handleLogin */}
 
         <div className='input-group'>
           <label htmlFor='cpf'>CPF:</label>  
@@ -48,7 +88,7 @@ export default function Login(){
             id='cpf' 
             placeholder='123.456.789-00'
             maxLength={14}
-            value={cpf}
+            value={cpf} // determina o valor do estado do cpf
             onChange={handleCpfChange}
             />
         </div>
@@ -62,6 +102,10 @@ export default function Login(){
               type={mostrarSenha ? 'text' : 'password'} 
               id='senha' 
               placeholder='••••••••••••' 
+              value={password}
+              onChange={(event) =>  ////Essa linha atualiza o estado da senha toda vez que o usuário digita no campo:
+                  setPassword(event.target.value)
+                }
             />
             
             {/* ícone do olhinho (também muda dependedndo do estado) */}
@@ -76,6 +120,13 @@ export default function Login(){
           Entrar
         </button>
        </form>
+
+          {/* Mostra a mensagem de sucesso ou erro */}
+        {mensagem && (
+          <p className="auth-message">
+            {mensagem}
+          </p>
+        )}
 
        {/* Links de Rodapé */}
        <div className='login-footer'>
