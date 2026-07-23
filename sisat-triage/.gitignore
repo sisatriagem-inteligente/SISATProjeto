@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Ambiente virtual
+venv/
+.env
+
+# Configurações locais
+.vscode/
+
+# Logs
+*.log
+
+# Arquivos temporários
+*.tmp
+
+# Node
+node_modules/
+
+# Sistema
+.DS_Store
+Thumbs.db
