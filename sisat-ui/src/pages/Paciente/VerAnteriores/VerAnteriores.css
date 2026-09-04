@@ -1,0 +1,136 @@
+.verAnt-container{
+    color: #494949;
+    background: #f2feff;
+    background: linear-gradient(
+        90deg,
+        rgba(242, 254, 255, 1) 60%, 
+        rgba(196, 233, 255, 1) 98%
+        );
+    padding: 20px 50px 50px 50px;
+    min-height: 100vh;
+
+}
+
+.verAnt-header{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    padding-bottom: 20px;
+    padding-top: 70px;
+    margin-bottom: 20px;
+    align-items: start;
+    font-size: 22px;
+}
+
+.header-left{
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+}
+
+
+ /* --- parte de voltar para o início ---*/
+
+.btn-voltar{
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    font-size: 20px;
+    font-weight: 500;
+    color: #41B0EC;
+    text-decoration: none;
+    transition: all 0.25s ease;
+}
+.btn-voltar i{
+    font-size: 28px;
+}
+
+.btn-voltar:hover{
+    color: #1382BE;
+    transform: translateX(-5px);
+}
+
+/* ----- parte triagens anteriores -----*/
+.historico{
+    font-weight: 700;
+    color: #41B0EC;
+}
+
+.lista-triagens{
+    background-color: rgb(255, 255, 255);
+    border-radius: 20px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+    padding-bottom: 18px;
+}
+
+.verAnt-card{
+    display: grid;
+    grid-template-columns: 250px minmax(0,1fr) 220px;
+    align-items: center;
+    margin: 0 15px;
+    padding: 0 25px 15px 25px;
+    color: #8f8f8f;
+    font-size: 15px;
+    font-weight: 500;
+    padding-bottom: 15px;
+}
+
+.verAnt-card p{
+    margin: 0;
+}
+
+/*  Data  */
+.verAnt-card p:nth-child(1){
+    text-align:left;
+    padding-left: 58px;
+}
+
+/* Sintomas */
+.verAnt-card p:nth-child(2){
+    text-align: center;
+}
+
+/* Status */
+.verAnt-card p:nth-child(3){
+    text-align: center;
+}
+
+/*----------- PARTE PARA MOBILE -----------*/
+
+@media(max-width: 865px){
+    .verAnt-container{
+        padding: 70px 10px 40px;
+        min-height: 100vh;
+        overflow-x: hidden;
+    }
+
+    .verAnt-header{
+        display: block;
+        padding: 20px 0 10px;
+        margin-bottom: 15px;
+        font-size: 18px;
+    }
+
+    .verAnt-header h1{
+        font-size: 30px;
+    }
+
+    .btn-voltar{
+        font-size: 18px;
+    }
+    .btn-voltar i{
+        font-size: 22px;
+    }
+
+    .lista-triagens{
+        width: 100%;
+        box-sizing: border-box;
+        padding: 15px 0;
+        border-radius: 18px;
+    }
+
+    .verAnt-card{
+        display: none;
+    }
+}

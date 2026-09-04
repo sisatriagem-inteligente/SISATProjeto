@@ -1,0 +1,476 @@
+.ip-container{
+    color: #494949;
+
+    background: #f2feff;
+    background: linear-gradient(
+        90deg,
+        rgba(242, 254, 255, 1) 60%, 
+        rgba(196, 233, 255, 1) 98%
+    );
+
+    min-height: 100vh;
+
+    overflow-x: hidden;
+}
+
+.ip-content{
+    min-height: calc(100vh - 80px);
+
+    display: grid;
+    grid-template-columns: 1.1fr 0.9fr;
+
+    align-items: center;
+
+    box-sizing: border-box;
+
+    gap: 40px;
+
+    width: calc(100% - 80px);
+    max-width: 1450px;
+
+    margin: 0 auto;
+}
+
+.ip-left{
+    width: 100%;
+}
+
+.img-bemVindo{
+    width: 100%;
+    max-width: clamp(650px, 42vw, 800px);
+}
+
+.ip-subtitle{
+    font-size: clamp(22px, 1.5vw, 28px);
+    font-weight: 450;
+    max-width: 700px;
+    line-height: 1.25;
+}
+
+ /*----- parte dos botões da direita -----*/
+.ip-right{
+    display: flex;
+    position: relative;
+    flex-direction: column;
+    align-items: center;
+    gap: 25px;
+    padding-left: 55px;
+}
+
+.ip-btn-block{
+    width: 560px;
+    box-sizing: border-box;
+
+    padding: 32px 35px;
+
+    background-color: white;
+    border-radius: 22px;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    gap: 18px;
+
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+}
+
+.btn-comecarTri,
+.btn-verAnt{
+    width: 450px;
+    height: 82px;
+
+    box-sizing: border-box;
+
+    display: flex;
+    align-items: center;
+
+    gap: 18px;
+
+    padding: 12px 20px;
+
+    border-radius: 16px;
+
+    font-size: 32px;
+    font-weight: 600;
+
+    text-decoration: none;
+
+    box-shadow: 0 4px 4px rgba(190,190,190,0.25);
+
+    transition:
+        transform 0.15s ease,
+        box-shadow 0.2s ease;
+}
+
+.icone{
+    width: 55px;
+    height: 55px;
+
+    border-radius: 50%;
+    background-color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #28a9f6;
+    font-size: 32px;
+    flex-shrink: 0;
+    font-weight: 600;
+}
+
+
+.btn-comecarTri{
+    padding: 20px;
+    color: white;
+    background: linear-gradient(
+        140deg,
+        rgb(131, 214, 240) 30%, 
+        rgb(82, 172, 255) 87%
+        );
+}
+
+.btn-comecarTri:hover{
+    transform: scale(1.1);
+    background: linear-gradient(
+        140deg,
+        rgb(31, 191, 240) 30%, 
+        rgb(17, 119, 214) 87%
+        );
+}
+
+.btn-verAnt{
+    background-color: #B8E1FF;
+    color: #005FA3;
+    padding: 20px;
+}
+
+
+.btn-verAnt:hover{
+    transform: scale(1.1);
+    background-color: #9bcaec;
+    color: #004475;
+}
+
+
+/*----- botão de ajuda -----*/
+
+.help-header{
+    display: grid;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.help-header h2{
+    margin: 0;
+    font-size: 25px;
+    color: #005FA3;
+}
+
+.btn-fechar{
+    border: none;
+    background: transparent;
+
+    color: #005FA3;
+
+    font-size: 20px;
+
+    cursor: pointer;
+
+    width: 30px;
+    height: 30px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 50%;
+
+    transition: background-color 0.2s ease;
+}
+
+.btn-fechar:hover{
+    background-color: rgba(255,255,255,0.35);
+}
+
+
+.ip-help{
+    position: absolute;
+
+    right: 15px;
+    bottom: -34px;
+
+    color: #005FA3;
+    background-color: #B8E1FF;
+
+    border-radius: 8px;
+}
+
+.btn-dica{
+    width: 35px;
+    height: 35px;
+
+    padding: 0;
+
+    background-color: #9fd7ff;
+
+    border: none;
+    border-radius: 8px;
+
+    font-size: 20px;
+    color: #005FA3;
+
+    box-shadow: 0 4px 4px rgba(42, 97, 180, 0.25);
+
+    cursor: pointer;
+
+    transition:
+        transform 0.15s ease,
+        background-color 0.2s ease;
+}
+
+.btn-dica:hover{
+    background-color: #71c4ff;
+    transform: scale(1.1);
+}
+
+.help-card{
+    position: absolute;
+
+    right: 45px;
+    top: 40px;
+
+    width: 420px;
+
+    padding: 20px;
+
+    border-radius: 18px;
+
+    background-color: #a9dbff;
+
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+
+    z-index: 10;
+}
+.help-text{
+    margin: 10px 0 0;
+    font-size: 17px;
+    line-height: 1.3;
+    color: #005FA3;
+}
+
+.help-bold{
+    font-weight: 600;
+    font-size: 17px;
+    color:#00406e
+}
+
+
+/* ------------------ PARTE PARA MOBILE ------------------*/
+@media (max-width: 1020px){
+
+    .ip-content{
+        min-height: auto;
+
+        display: grid;
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto auto;
+
+        align-items: center;
+        justify-items: center;
+
+        gap: 30px;
+
+        width: 100%;
+        max-width: 100%;
+
+        /* espaço para a navbar */
+        padding: 100px 20px 40px;
+
+        box-sizing: border-box;
+    }
+
+    .ip-left{
+        display: contents;
+    }
+
+    /* ---------- IMAGEM ---------- */
+
+    .img-bemVindo{
+        grid-row: 1;
+
+        width: 100%;
+        max-width: 500px;
+        height: auto;
+
+        object-fit: contain;
+
+        display: block;
+    }
+
+    /* ---------- TEXTO ---------- */
+
+    .ip-subtitle{
+        grid-row: 2;
+
+        width: 100%;
+        max-width: 550px;
+
+        margin: 0;
+
+        padding: 0;
+
+        box-sizing: border-box;
+
+        text-align: center;
+
+        font-size: 20px;
+        line-height: 1.3;
+    }
+
+    /* ---------- PARTE DIREITA ---------- */
+
+    .ip-right{
+        grid-row: 3;
+
+        width: 100%;
+        max-width: 500px;
+
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+
+        padding-left: 0;
+        box-sizing: border-box;
+    }
+
+    /* ---------- CARD ---------- */
+
+    .ip-btn-block{
+        width: 100%;
+        max-width: 500px;
+
+        box-sizing: border-box;
+
+        padding: 25px;
+
+        gap: 18px;
+    }
+
+    /* ---------- BOTÕES ---------- */
+
+    .btn-comecarTri,
+    .btn-verAnt{
+        width: 100%;
+        height: 85px;
+
+        box-sizing: border-box;
+
+        font-size: 25px;
+
+        gap: 16px;
+    }
+
+    /* ---------- HELP ---------- */
+
+    .ip-help{
+        position: relative;
+
+        right: auto;
+        bottom: auto;
+
+        align-self: flex-end;
+
+        margin-top: -20px;
+        margin-right: 10px;
+    }
+
+    .help-card{
+        width: min(320px, calc(100vw - 40px));
+
+        right: 0;
+        top: 45px;
+
+        box-sizing: border-box;
+    }
+}
+
+
+/*  ----------- VERSÃO PARA CELULARES AINDA MENORES ----------- */
+@media (max-width: 600px){
+
+    .ip-content{
+        gap: 25px;
+
+        /* mais espaço para a navbar */
+        padding: 90px 15px 35px;
+    }
+
+    .img-bemVindo{
+        width: 100%;
+        max-width: 360px;
+    }
+
+    .ip-subtitle{
+        width: 100%;
+        max-width: 370px;
+
+        font-size: 18px;
+        line-height: 1.3;
+    }
+
+    .ip-btn-block{
+        width: 100%;
+        max-width: 360px;
+
+        padding: 20px;
+
+        border-radius: 20px;
+
+        gap: 15px;
+    }
+
+    .btn-comecarTri,
+    .btn-verAnt{
+        width: 100%;
+        height: 75px;
+
+        font-size: 20px;
+
+        gap: 14px;
+
+        padding: 12px 15px;
+    }
+
+    .icone{
+        width: 50px;
+        height: 50px;
+
+        font-size: 27px;
+    }
+
+    .ip-help{
+        margin-right: 5px;
+        margin-top: -15px;
+    }
+
+    .btn-dica{
+        width: 34px;
+        height: 34px;
+    }
+
+    .help-card{
+        width: calc(100vw - 40px);
+        max-width: 320px;
+
+        right: -5px;
+    }
+
+    .help-header h2{
+        font-size: 21px;
+    }
+
+    .help-text{
+        font-size: 15px;
+    }
+}

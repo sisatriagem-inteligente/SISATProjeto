@@ -1,0 +1,262 @@
+/*essa classe é a do h1. ela nao vai aparecer em nada, só vai servir para o navegador se localizar.*/
+.sr-only{                   
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0,0,0,0);  
+    white-space: nowrap;  
+    border: 0;
+}
+
+.home-container{
+    background: #E8FEFF;
+    background: linear-gradient(
+        90deg,
+        rgba(232, 254, 255, 1) 25%, 
+        rgba(145, 211, 255, 1) 75%
+        );
+    min-height: calc(100vh - 80px);  /*dessa maneira ocupa a tela inteira e nao interfere na Navbar (que tem tamanho de 80px)*/
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0 auto;
+}
+
+.home-content{
+    width: 100%;
+    max-width: 2000px;
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: center;
+    gap: 40px;
+    padding: 0 80px;
+}
+
+/* itens da esquerda */
+
+.home-left{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    justify-self: end;
+    align-items: flex-start;
+    width: 100%;
+    padding-left: 0px;
+    gap: 20px;
+    transform: translateX(100px);
+}
+
+.logo-escrito{
+    width: 100%;
+    max-width: 600px;
+    margin-bottom: 0px;
+}
+
+/*parte do slogan*/
+.home-subtitle{
+    font-size: 58px;
+    line-height: 1.1;
+    color: #494949;
+    margin-top: -10px;
+}
+
+.subtitle-normal{
+    font-weight: 400;
+}
+
+.subtitle-bold{
+    font-weight: bold;
+}
+/*fim do slogan*/
+
+.home-seguranca{
+    font-size: 18px;
+    color: #7a7a7a;
+    font-weight: 500;
+    margin-bottom: 15px;
+}
+
+.home-seguranca i{
+    margin-right: 5px;
+}
+
+/* botao de comece a triagem */
+.comeceTriagem{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    padding: 10px 20px ;
+    border-radius: 15px;
+    background: #52d7ff;
+    background: linear-gradient(
+        140deg,
+        rgba(82, 215, 255, 1) 30%, 
+        rgba(18, 140, 255, 1) 87%
+        );
+    width: 330px;
+    border: none;
+    transform:scale(1.25);
+    box-shadow: 0px 4px 4px rgba(190, 190, 190, 0.25);
+    transition: 
+        transform 0.3s linear, 
+        box-shadow 0.3s ease;
+}
+
+.comeceTriagem:hover{
+    transform: scale(1.3);
+    box-shadow: 0px 8px 18px rgba(0,0,0,0.18);
+
+}
+
+.link-comece{
+    text-decoration: none;
+    color: #ffffff;
+    font-size:25px;
+    font-weight: 600;
+    display: block;
+    width: 100%;        /*esse display block, width e height 100% fazer o botao ter sua area inteira clicavel, nao so o texto*/
+    height: 100%;
+}
+
+/* botao de ja tenho conta */
+.jaTenhoConta{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    padding: 10px 20px;
+    border-radius: 15px;
+    background-color: #ffffff;
+    width: 330px;
+    border: none;
+    transform: scale(1.25);
+    transition: 
+        transform 0.3s linear, 
+        box-shadow 0.3s ease;
+}
+
+.jaTenhoConta:hover{
+    transform: scale(1.3);
+    box-shadow: 0px 8px 18px rgba(0,0,0,0.18);  
+}
+
+.link-jaTenho{
+    text-decoration: none;
+    color: #494949;
+    font-size:25px;
+    font-weight: 600;
+    display: block;     /*↓*/
+    width: 100%;        /*faz com que toda a área do botão seja clicável, e não apenas o texto do Link*/
+    height: 100%;       /*↑*/
+}
+
+
+/* itens da direita */
+
+.home-right{
+    display:flex;
+    justify-content: center;
+    align-items: center;
+    padding-left: 20px;
+    padding-top: 100px; 
+}
+
+.celular-image{
+    width: 95%;
+    max-width: 750px;
+}
+
+
+/* ------- como funciona intro -------*/
+.comoFunciona{
+    color: #2EABFF;
+    font-size: 18px;
+    text-shadow: 2px 2px 6px #8d8d8d;
+    display: flex;
+    padding-left: 80px;
+    padding-bottom: 20px;
+}
+
+
+
+
+
+
+/* --------------- PARTE PARA MOBILE --------------- */
+@media (max-width: 1020px){ /*coloquei maior do que os outros para não ter problema com o celular*/
+    .home-content{
+        grid-template-columns: 100%;
+        padding: 80px 20px;
+
+    }
+
+/* ---- itens da esquerda ------*/
+    .home-left{
+        transform: none;
+        align-items: center;
+        text-align: center;
+        gap: 16px;
+    }
+    .logo-escrito{ /*→ SISAT*/
+        width: 300px;
+    }
+
+    .home-subtitle{ /*→ slogan*/
+        font-size: 32px;
+    }
+    .home-seguranca{
+        font-size: 16px;
+    }
+
+    /*botão de começar a triagem*/
+    .comeceTriagem{
+        width: 250px;
+        height: auto;
+    }
+    .link-comece{
+        font-size:18px;
+        font-weight: 600;
+    }
+
+    /* botao de ja tenho conta */
+    .jaTenhoConta{
+        width: 250px;
+    }
+
+    .link-jaTenho{
+        font-size:18px;
+        font-weight: 600;
+    }
+
+
+/* ---- itens da direita ------*/
+
+    .home-right{
+        align-items: center;
+        text-align: center;
+        justify-content: center;
+        transform: none;
+        padding-left: 0;
+        padding-top: 0;
+    }
+
+    .celular-image{
+        padding-top: 20px;
+        width: 75%;
+        max-width: 320px;
+    }
+
+
+    /* ------- como funciona intro -------*/
+    .comoFunciona{
+        font-size: 15px;
+        text-shadow: 2px 2px 6px #8d8d8d;
+        display: flex;
+        padding-left: 0;
+        padding-bottom: 20px;
+    }
+}

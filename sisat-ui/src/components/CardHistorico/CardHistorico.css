@@ -1,0 +1,83 @@
+.cardHistorico{
+    display: grid;
+    grid-template-columns: 250px  minmax(0,1fr) 220px; 
+
+    align-items: center;
+
+    padding: 18px 25px;
+
+    margin: 15px;
+
+    background-color: white;
+
+    border-radius: 22px;
+
+    box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+}
+
+.card-data{
+    display: grid;
+    grid-template-columns: 40px auto;
+    gap: 10px;
+    align-items: center;
+}
+
+.dataHora{
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.card-data i{
+    font-size: 28px;
+    color: #41B0EC;
+}
+
+.card-sintomas{
+    display:flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+.card-sintomas p{
+    margin: 0;
+    max-width: 320px;
+}
+
+.status{
+    text-align: center;
+    justify-self: center;
+    width: 170px;
+    padding: 10px 20px;
+    border-radius: 30px;
+    font-weight: 600;
+}
+
+.em-andamento{
+    background-color: #FFF7B4;
+    color: #D69A00;
+}
+
+.concluido{
+    background-color: #AADFBD;
+    color: #46B970;
+}
+
+@media(max-width: 768px){
+
+    .cardHistorico{
+        grid-template-columns:1fr;
+        gap:18px;
+        text-align:center;
+    }
+
+    .card-data{
+        justify-content:center;
+    }
+
+    .status{
+        justify-self:center;
+    }
+
+}

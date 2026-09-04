@@ -1,0 +1,218 @@
+.navbar{
+    display: flex;                     /* define o elemento como um container flexível, permitindo o uso de propriedades flexbox para organizar seus itens filhos. */
+    justify-content: space-between;    /*alinha os itens no eixo principal (geralmente horizontal) de um conteiner flexbox ou grid, distribuindo o espaço extra. centraliza os itens. */
+    align-items: center;
+    background-color: transparent;  
+    padding: 10px 40px 20px;
+    position: fixed;                   /* fixa a posição do elemento (permanece visível mesmo quando o usuário rola a página). */
+    top: 0;                            /* define a posição do elemento a partir do topo da janela de visualização. */
+    left: 0;                           /* define a posição do elemento a partir da borda esquerda da janela de visualização. */
+    width: 100%;                       /* define a largura do elemento como 100% da largura do seu elemento pai, fazendo com que ele ocupe toda a largura disponível. */
+    z-index: 1000;                     /* define a ordem de empilhamento do elemento, garantindo que ele fique acima de outros elementos na página. */
+
+    pointer-events: none;              /* significa que o elemento não recebe eventos de mouse, como cliques e hover. */
+}
+
+.navbar-brand-btn,
+.menu-icon,
+.navbar-menu,
+.menu-overlay {
+    pointer-events: auto;
+}
+
+/* --- Botão da LOGO (esquerda) --- */
+.navbar-brand-btn{
+    display: flex;
+    align-items: center;
+    gap: 10px;                          /* define o espaçamento entre os itens filhos do container flexível, criando uma distância de 10 pixels entre eles. */
+    text-decoration: none;              /* remove a decoração padrão de links, como sublinhado, garantindo que o botão da logo tenha uma aparência limpa e consistente. */
+    padding: 10px;                      /* define o espaçamento interno do botão da logo, criando uma área clicável maior. */
+    display: inline-block;
+    background: none;
+    border: none;
+}
+button.navbar-brand-btn{
+    cursor: pointer;                     /* altera o cursor do mouse para um ponteiro quando o usuário passa sobre o botão da logo, indicando que ele é clicável. */
+    transition: transform 0.2s ease;     /* define uma transição suave para a transformação de escala, tornando a animação mais agradável visualmente. */
+}
+button.navbar-brand-btn:hover{
+    transform: scale(1.05);             /* aumenta ligeiramente o tamanho do botão da logo quando o usuário passa o mouse sobre ele, criando um efeito visual de destaque. */
+   
+}
+
+.navbar-brand-logo {
+    padding: 10px;
+    display: inline-block;
+    pointer-events: none;
+}
+
+.navbar-logo-img{
+    height: 50px;                        /* aqui ajusta o tamanho da logo*/
+    border-radius: 40px;                 /* arredonda os cantos da imagem da logo. */
+    background-color: #ffffff;
+    border: 5px solid #ffffff;         /* define uma borda sólida de 2 pixels ao redor da imagem da logo. */
+    transform: scale(1.5);
+}
+
+
+/* --- Menu de links (direita) --- */
+.navbar-menu{
+    display: flex;                        /* define o container como um elemento flexível, permitindo a organização dos itens filhos em linha. */
+    list-style: none;                     
+    gap: 25px;                           
+    margin: 0;
+    padding: 0;   
+    align-items: center;  
+    text-align: center;                                
+}
+ 
+.navbar-menu a, .nav-button{
+    background: none;
+    border: none;
+    color: #ffffff; 
+    text-decoration:none;
+    font-size: 23px;
+    font-weight: bold;
+    text-shadow: #0c88ca 1px 1px 2px;   
+    transition:
+        color 0.2s ease,
+        transform 0.2s ease,
+        background-color 0.2s ease;   
+    display: inline-block;   
+}
+
+.nav-button:hover,.navbar-menu a:not(.loginMedico):not(.login):hover { /* dessa forma, aplica a todos os links na navbar que NÃO sejam loginMedico e login*/
+    color:#109ce2;                                  
+    text-shadow: #24688d 1px 0px 1px; 
+    transform: scale(1.08);
+    cursor: pointer;
+}
+
+.loginMedico,
+.login{ 
+    border-radius: 15px;
+    background-color: #41B0EC !important; 
+    color: white;
+    padding: 8px 16px;
+    transition: 
+        background-color 0.2s ease,    
+        transform 0.3s ease,
+        box-shadow 0.2s ease;
+}
+
+.loginMedico:hover, 
+.login:hover{ 
+    background-color: #1091d1 !important; 
+    transform: translateY(-2px) scale(1.12);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.15);      
+}
+
+/* ---- PREPARAÇÃO DA TELA DO COMPUTADOR PARA O MENU MOBILE ---- */
+.menu-icon{
+    display:none;
+    cursor: pointer;
+}
+
+.menu-overlay{
+    display:none;
+}
+
+
+
+
+
+/* ------ parte de dispositivos móveis (ativa quando a tela é menor que 792px) ------- */
+
+@media(max-width: 865px){               /*aumentei o alcance por para 792px para nao bugar nada*/
+    
+    .menu-icon{
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        z-index: 2000;                  /*garante que o botão fique acima dos outros elementos */
+    }
+
+    /*desenha cada risquinho de branco*/
+    .menu-icon .bar{
+        width:28px;
+        height: 3px;
+        background-color: #28a9f6;
+        border-radius: 2px;
+    }
+
+    /*transforma o menu normal em um menu lateral*/
+    .navbar-menu{
+        position:fixed;
+        top:0;
+        right: -100%;                   /*começa fora da tela*/
+        width: 250px;                   /* largura do menu aberto */
+        height: 100vh;                  /* altura do menu aberto (ocupa toda a altura do navegador do usuario) */
+        background: linear-gradient(
+            90deg, 
+            rgba(163, 223, 255, 0.95) 0%, 
+            rgba(191, 251, 255, 0.78) 50%, 
+            rgba(163, 223, 255, 0.85) 100%
+            );
+        flex-direction: column;
+        align-items: flex-start;         
+        padding: 80px 30px 30px 30px;    /* espaçamento interno do menu lateral */
+        transition: right 0.3s ease;     /* animação suave ao abrir/fechar o menu lateral */
+        z-index: 9999;
+    }
+
+    /* a classe "ativo" entra em ação e puxa o menu para dentro da tela com a direita valendo 0*/
+    .navbar-menu.ativo{
+        right: 0;
+    }
+
+    /*overlay que deixa o fundo escuro ao abrir o menu*/
+    .menu-overlay {
+        display: block;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;                               /* vw = 100% da largura visual da tela */
+        height: 100vh;                              /* vh = 100% da altura visual da tela */
+        background-color: rgba(0, 0, 0, 0.6);
+        z-index: 9998;                              /* Z-index super alto para passar por cima do Login/Cadastro */
+  }
+
+
+  .logo-esconder-mobile{
+    display: none;                               /*esconde a logo da navbar quando o menu mobile estiver aberto*/
+  }
+
+/* organizando os botões do menu */
+
+    .navbar-menu a, .nav-button{
+        color: #ffffff; 
+        text-decoration:none;
+        font-size: 15px;
+        font-weight: bold;
+        text-shadow: #0b78b3 1px 1px 2px;   
+        transition: color 0.2s ease;         
+    }
+
+    .navbar-menu a:hover{
+        color:#0c84c0;                                  
+        text-shadow: #0f99dd 1px 0px 1px; 
+        transition: color 0.2s ease;
+    }
+
+    .loginMedico , 
+    .login{
+        border-radius: 15px;
+        background-color: #41B0EC;
+        color: #E8F5FD !important;
+        padding: 6px 8px;
+        transition: 0.3s ease-in-out; 
+    }
+
+    .loginMedico:hover , 
+    .login:hover{
+        background-color: #0f99dd;
+        color: #ffffff !important;
+        transform: scale(1.05);
+    }
+
+}

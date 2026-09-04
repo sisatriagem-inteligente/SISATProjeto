@@ -1,0 +1,84 @@
+.quemsomos-content{
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+    align-items: center;
+    justify-content: center;
+    background: #E8FEFF;
+    background: linear-gradient(
+        90deg,
+        rgba(232, 254, 255, 1) 25%, 
+        rgba(145, 211, 255, 1) 75%
+        );
+    color: #494949;
+}
+
+.quemsomos-header{
+    padding-top: 57px;
+    max-width: 900px;
+    width: 95%;
+    justify-content: center;
+    padding-bottom: 25px;
+}
+
+.quemsomos-first{
+    font-size: 28px;
+    line-height: 1.1;
+    padding-bottom: 40px;
+}
+
+.subtitle-normal{
+    font-weight: 400;
+}
+.subtitle-bold{
+    font-weight: bold;
+}
+
+.idosos-img{
+    padding-top: 55px;
+    max-width: 750px;
+    width: 65%;
+}
+
+.quemsomos-last{
+    display: grid;
+    grid-template-columns: 55% 45%;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+    line-height: 1.1;
+    padding-bottom: 20px;
+    padding-right: 50px;
+}
+.quemsomos-last p{
+    padding-bottom: 20px;
+}
+
+.qs-celular{
+    max-width: 800px;
+    width: 70%;
+}
+
+/* --------------- PARTE PARA MOBILE --------------- */
+@media (max-width: 768px){
+    .quemsomos-first{
+        font-size: 20px;
+        line-height: 1.1;
+        color: #494949;
+        padding-bottom: 40px;
+    }
+
+    .quemsomos-last{
+        display: block;
+        grid-template-columns: none;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        line-height: 1.1;
+        color: #494949;
+        padding-bottom: 40px;
+        padding-right: 10px;
+        padding-left: 10px;
+    }
+}

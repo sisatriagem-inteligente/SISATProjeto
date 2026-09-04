@@ -1,0 +1,130 @@
+.comoFun-content{
+    min-height: calc(100vh - 80px); /*espaço da tela do usuário - tamanho da navbar*/
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+    align-items: center;
+    justify-content: center;
+
+    background: #E8FEFF;
+    background: linear-gradient(
+        90deg,
+        rgba(232, 254, 255, 1) 25%, 
+        rgba(145, 211, 255, 1) 75%
+        );
+}
+
+.comoFun-header{
+    width: 100%;
+    max-width: 680px;
+}
+
+.comoFun-subtitle{
+    font-size: 30px;
+    line-height: 1.1;
+    color: #494949;
+    padding-bottom: 10px;
+}
+
+.subtitle-normal{
+    font-weight: 400;
+}
+
+.subtitle-bold{
+    font-weight: bold;
+}
+
+
+/*---------- área dos CARDS ----------*/
+.card-container{
+    display: grid;          /*sem isso o grid template nao funciona.*/ 
+    grid-template-columns:repeat(5,auto);  
+    align-items: center;
+    justify-content: center;
+    gap: 25px; 
+    padding: 25px;
+}
+
+.card-title{
+    color: #6cc4ff;
+    font-size: 25px;
+}
+.conteudo{
+    gap: 0;
+    padding: 0;
+    font-size: 20px;
+    padding-top: 10px;
+    padding-bottom: 13px;
+}
+
+.cards{
+    width: 300px;
+    background: white;
+    border-radius: 20px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    box-shadow: 0 4px 4px rgba(190,190,190,.25);
+
+}
+
+.card-images{
+    width: 220px;
+    padding: 10px 5px 0px 5px;
+}
+
+/*setinhas ligando os cards:*/
+.arrow{
+    font-size: 55px;
+    color:#179FE8;
+    justify-self:end;
+}
+
+
+
+/* --------------- PARTE PARA MOBILE --------------- */
+@media (max-width: 1020px){
+    .comoFun-content{
+        justify-content: flex-start;
+    }
+
+    .comoFun-header{
+        max-width: 480px;
+        width: 80%;
+    }
+
+    .comoFun-subtitle{
+        font-size: 22px;
+
+    }
+
+    /*---------- área dos CARDS ----------*/
+    .card-container{
+        display: grid;          /*sem isso o grid template nao funciona.*/ 
+        grid-template-columns: 1fr;  
+        align-items: center;
+        justify-items: center;
+        gap: 15px; 
+    }
+
+    .cards{
+        width: 90%;
+        max-width: 300px;
+        font-size: 16px;
+    }
+
+    .card-images{
+        max-width: 220px;
+        width: 70%;
+    }
+
+    .arrow{
+        transform: rotate(90deg);
+        text-align: center;
+        justify-self: center;
+    }
+
+} 
+
+

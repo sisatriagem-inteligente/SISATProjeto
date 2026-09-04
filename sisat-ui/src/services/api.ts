@@ -1,95 +1,160 @@
 import axios from 'axios';
 
-// Cria uma configuração do Axios com a URL do backend.
+export type UserRole = 'paciente' | 'medico';
+
+// Usa a URL do .env e mantém localhost como valor padrão.
 const api = axios.create({
-  baseURL: 'http://localhost:3000',
+  baseURL:
+    import.meta.env.VITE_API_URL ||
+    'http://localhost:3000',
 });
 
-// Cadastra um novo paciente.
-export function cadastrarPaciente(dados: {
+//ADICIONADO PARA O FUNCIONAMENTO DO FRONTEND
+
+export interface AtendimentoEmAndamento {
+  id: string;
+  nome: string;
+  idade: number;
+  sexo: string;
+  data: string;
+  sintomas: string;
+  prioridade: 'vermelho' | 'amarelo' | 'verde';
+}
+
+export async function buscarAtendimentosEmAndamento() {
+  const resposta = await api.get<AtendimentoEmAndamento[]>(
+    'COLOCAR_AQUI_A_ROTA_REAL'
+  );
+
+  return resposta.data;
+}
+
+
+
+//FIM DO ADICIONADO PARA O FUNCIONAMENTO DO FRONTEND
+
+export interface UsuarioSISAT {
+  id: string;
+  cpf?: string;
+  email: string;
+  role: UserRole;
+}
+
+export interface DadosCadastroPaciente {
   cpf: string;
   email: string;
   password: string;
-}) {
-  return api.post('/auth/paciente/cadastro', dados);
 }
 
-// Faz o login do paciente e salva o token.
-export async function loginPaciente(dados: {
+export interface DadosLoginPaciente {
   cpf: string;
   password: string;
-}) {
-  // Espera o backend responder ao login.
-  const resposta = await api.post(
+}
+
+export interface DadosLoginMedico {
+  email: string;
+  password: string;
+}
+
+export interface RespostaCadastroPaciente {
+  message: string;
+  patient: {
+    id: string;
+    cpf: string;
+    email: string;
+  };
+}
+
+export interface RespostaLogin {
+  message: string;
+  access_token: string;
+  user: UsuarioSISAT;
+}
+
+
+
+// Salva os dados retornados depois de um login válido.
+function salvarSessao(resposta: RespostaLogin) {
+  localStorage.setItem(
+    'access_token',
+    resposta.access_token,
+  );
+
+  localStorage.setItem(
+    'sisat_user',
+    JSON.stringify(resposta.user),
+  );
+}
+
+export function cadastrarPaciente(
+  dados: DadosCadastroPaciente,
+) {
+  return api.post<RespostaCadastroPaciente>(
+    '/auth/paciente/cadastro',
+    dados,
+  );
+}
+
+export async function loginPaciente(
+  dados: DadosLoginPaciente,
+) {
+  const resposta = await api.post<RespostaLogin>(
     '/auth/paciente/login',
     dados,
   );
 
-  // Pega o token retornado pelo backend.
-  const token = resposta.data.access_token;
-
-  // Salva o token no navegador.
-  localStorage.setItem('access_token', token);
-
-  // Devolve a resposta para o componente React.
+  salvarSessao(resposta.data);
   return resposta;
 }
 
-// Faz o login do médico e salva o token.
-export async function loginMedico(dados: {
-  email: string;
-  password: string;
-}) {
-  // Espera o backend responder ao login.
-  const resposta = await api.post(
+export async function loginMedico(
+  dados: DadosLoginMedico,
+) {
+  const resposta = await api.post<RespostaLogin>(
     '/auth/medico/login',
     dados,
   );
 
-  // Pega o token retornado pelo backend.
-  const token = resposta.data.access_token;
-
-  // Salva o token no navegador.
-  localStorage.setItem('access_token', token);
-
-  // Devolve a resposta para o componente React.
+  salvarSessao(resposta.data);
   return resposta;
 }
 
-// Busca o token que foi salvo.
 export function obterToken() {
   return localStorage.getItem('access_token');
 }
-// Cria e exporta uma função para obter uma mensagem de erro.
+
+export function obterUsuario(): UsuarioSISAT | null {
+  const usuarioSalvo = localStorage.getItem('sisat_user');
+
+  if (!usuarioSalvo) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(usuarioSalvo) as UsuarioSISAT;
+  } catch {
+    return null;
+  }
+}
+
 export function obterMensagemErro(erro: unknown) {
-  // Verifica se o erro foi gerado pelo Axios.
   if (axios.isAxiosError(erro)) {
-    // Tenta acessar a mensagem enviada pelo backend.
-    // O "?." evita erro caso response, data ou message não existam.
     const mensagem = erro.response?.data?.message;
 
-    // Verifica se a mensagem é uma lista de mensagens.
     if (Array.isArray(mensagem)) {
-      // Junta todas as mensagens em um único texto,
-      // separando cada uma por um espaço.
       return mensagem.join(' ');
     }
 
-    // Verifica se a mensagem é um texto simples.
     if (typeof mensagem === 'string') {
-      // Retorna a mensagem enviada pelo backend.
       return mensagem;
     }
 
-    // Verifica se não houve nenhuma resposta do servidor.
     if (!erro.response) {
-      // Retorna uma mensagem indicando falha na conexão.
       return 'Não foi possível conectar com o servidor.';
     }
   }
 
-  // Retorna esta mensagem caso o erro não seja do Axios
-  // ou não tenha uma mensagem reconhecida.
   return 'Ocorreu um erro inesperado.';
 }
+
 export default api;

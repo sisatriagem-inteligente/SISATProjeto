@@ -9,3 +9,19 @@ body{
   color: #1f2937;
   background: #7fbada9a;
 }
+
+::-webkit-scrollbar{ /*muda a área de scroll (barrinha do lado direito)*/
+  width: 10px;
+  background: #52d7ff;
+  background: linear-gradient(
+    180deg,
+    rgba(82, 215, 255, 1) 30%, 
+    rgba(18, 129, 255, 1) 86%
+    );
+}
+
+::-webkit-scrollbar-thumb{ /*muda o indicador de scroll (quadradinho dentro da barrinha do lado direito)*/
+  width: 10px;
+  background-color: azure;
+  border-radius: 10px;
+}

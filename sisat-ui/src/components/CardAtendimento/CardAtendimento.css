@@ -1,0 +1,177 @@
+.card-atendimento {
+    width: 100%;
+    min-height: 90px;
+
+    display: flex;
+    align-items: center;
+
+    background: #e4f8fc;
+
+    border-radius: 25px;
+
+    padding: 8px 15px 8px 10px;
+
+    box-sizing: border-box;
+
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+
+    gap: 12px;
+}
+
+
+/* QUADRADO DA PRIORIDADE */
+
+.card-prioridade {
+    width: 74px;
+    height: 70px;
+
+    flex-shrink: 0;
+
+    border-radius: 18px;
+}
+
+
+/* Cores do Manchester */
+
+.card-prioridade.vermelho {
+    background: linear-gradient(
+        135deg,
+        #ff6666,
+        #ffb3b3
+    );
+}
+
+.card-prioridade.laranja {
+    background: linear-gradient(
+        135deg,
+        #f6b33f,
+        #ffe0aa
+    );
+}
+
+.card-prioridade.amarelo {
+    background: linear-gradient(
+        135deg,
+        #ffe537,
+        #fff6a8
+    );
+}
+
+.card-prioridade.verde {
+    background: linear-gradient(
+        135deg,
+        #9cf06b,
+        #d8ffc9
+    );
+}
+
+.card-prioridade.azul {
+    background: linear-gradient(
+        135deg,
+        #72c9f5,
+        #cdeefe
+    );
+}
+
+
+/* CONTEÚDO */
+
+.card-atendimento-conteudo {
+    flex: 1;
+    min-width: 0;
+}
+
+
+.card-atendimento-linha-principal {
+    display: flex;
+    align-items: center;
+
+    gap: 20px;
+}
+
+
+.card-atendimento-linha-principal h2 {
+    margin: 0;
+
+    font-size: 23px;
+    font-weight: 700;
+
+    color: #494949;
+
+    white-space: nowrap;
+}
+
+
+.card-atendimento-dados {
+    display: flex;
+    align-items: center;
+
+    gap: 20px;
+
+    font-size: 15px;
+
+    color: #494949;
+}
+
+
+.card-atendimento-dados strong,
+.card-sintomas strong {
+    color: #209de4;
+}
+
+
+.card-sintomas {
+    margin: 12px 0 0;
+
+    font-size: 15px;
+
+    color: #494949;
+}
+
+
+/* BOTÃO */
+
+.btn-ver-completo {
+    width: 150px;
+    min-height: 68px;
+
+    text-decoration: none;
+
+    border: none;
+    border-radius: 20px;
+
+    background: #2faef1;
+
+    color: white;
+
+    font-size: 18px;
+    font-weight: 700;
+
+    cursor: pointer;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    gap: 0;
+
+    flex-shrink: 0;
+
+    transition:
+        transform 0.2s ease,
+        background 0.2s ease;
+}
+
+
+.btn-ver-completo:hover {
+    background: #209de4;
+
+    transform: scale(1.03);
+}
+
+
+.btn-ver-completo .seta {
+    font-size: 25px;
+    line-height: 20px;
+}

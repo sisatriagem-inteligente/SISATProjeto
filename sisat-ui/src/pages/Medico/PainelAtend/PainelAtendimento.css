@@ -1,0 +1,93 @@
+.painel-atendimento-container {
+    min-height: 100vh;
+
+    box-sizing: border-box;
+
+    padding: 30px 35px 50px;
+
+    color: #494949;
+
+    background: #f2feff;
+
+    background: linear-gradient(
+        90deg,
+        rgba(242, 254, 255, 1) 60%,
+        rgba(196, 233, 255, 1) 98%
+    );
+}
+
+
+/* CABEÇALHO */
+
+.painel-atendimento-header {
+    margin-left: 15px;
+
+    margin-bottom: 10px;
+}
+
+
+.painel-atendimento-boas-vindas {
+    margin: 0;
+
+    font-size: 20px;
+}
+
+
+.painel-atendimento-boas-vindas strong {
+    color: #209de4;
+}
+
+
+.painel-atendimento-header h1 {
+    margin: 3px 0 10px;
+
+    font-size: 42px;
+
+    line-height: 1.1;
+
+    font-weight: 700;
+
+    color: #494949;
+}
+
+
+/* LISTA */
+
+.lista-atendimentos {
+    width: 100%;
+
+    max-width: 1050px;
+
+    margin: 0 auto;
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 12px;
+
+    max-height: calc(100vh - 150px);
+
+    overflow-y: auto;
+
+    padding: 0 5px 10px;
+}
+
+
+/* BARRA DE ROLAGEM */
+
+.lista-atendimentos::-webkit-scrollbar {
+    width: 8px;
+}
+
+
+.lista-atendimentos::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+
+.lista-atendimentos::-webkit-scrollbar-thumb {
+    background: #bdbdbd;
+
+    border-radius: 10px;
+}
