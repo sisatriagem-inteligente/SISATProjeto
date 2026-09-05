@@ -25,20 +25,25 @@ import {
   DoctorSchema,
 } from './schemas/doctor.schema';
 
-/*
- * Declara o módulo responsável pela autenticação.
+/**
+ * Módulo responsável pelas funcionalidades
+ * de autenticação do SISAT.
+ *
+ * Este módulo reúne:
+ * - controller de autenticação;
+ * - service de autenticação;
+ * - models de pacientes e médicos;
+ * - configuração do JWT.
  */
 @Module({
-  /*
-   * imports contém outros módulos necessários
-   * para o funcionamento deste módulo.
-   */
+  
   imports: [
-    /*
-     * Registra os models do Mongoose.
+    /**
+     * Registra os schemas de Patient e Doctor
+     * no Mongoose.
      *
-     * Depois desse registro, eles podem ser injetados
-     * no AuthService usando @InjectModel().
+     * Após esse registro, seus models podem ser
+     * injetados no AuthService com @InjectModel().
      */
     MongooseModule.forFeature([
       {

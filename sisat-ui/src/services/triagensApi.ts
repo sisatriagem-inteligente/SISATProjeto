@@ -34,11 +34,52 @@ export interface ResultadoMaria {
 }
 
 export interface InformacoesMedicas {
-  temperatura?: number;
-  pressao_arterial?: string;
-  frequencia_cardiaca?: number;
-  exame_fisico_direcionado?: string;
-  observacoes?: string;
+  altura?: number | null;
+  peso?: number | null;
+  temperatura?: number | null;
+  frequencia_cardiaca?: number | null;
+  frequencia_respiratoria?: number | null;
+  exame_fisico_direcionado?: string | null;
+  observacoes?: string | null;
+}
+
+export interface RespostaMensagemMaria {
+  mensagem: string;
+  finalizada: boolean;
+}
+
+export interface ItemHistoricoTriagem {
+  id: string;
+  data_hora_entrada: string;
+  status: StatusTriagem;
+  cor_classificacao: CorClassificacao | null;
+  queixa_principal: string | null;
+  intensidade: IntensidadeTriagem | null;
+  resumo: string | null;
+}
+
+export interface RespostaHistoricoPaciente {
+  paciente: { id: string; nome: string | null };
+  total_triagens: number;
+  triagens: ItemHistoricoTriagem[];
+}
+
+export interface TriagemCompleta {
+  id: string;
+  paciente_id: string;
+  medico_id: string | null;
+  status: StatusTriagem;
+  data_hora_entrada: string;
+  cor_classificacao: CorClassificacao | null;
+  dados_paciente: DadosPacienteTriagem | null;
+  dados_triagem: DadosTriagemMaria | null;
+  resumo: string | null;
+  hipoteses_clinicas_iniciais: HipoteseClinicaInicial[];
+  informacoes_medicas: InformacoesMedicas;
+}
+
+export interface RespostaTriagemCompleta {
+  triagem: TriagemCompleta;
 }
 
 export interface RespostaCriarTriagem {
@@ -84,11 +125,25 @@ export function criarTriagem(pacienteId: string) {
 export function buscarTriagensDoPaciente(
   pacienteId: string,
 ) {
-  return api.get(`/triagens/paciente/${pacienteId}`);
+  return api.get<RespostaHistoricoPaciente>(
+    `/triagens/paciente/${pacienteId}`,
+  );
 }
 
 export function buscarTriagemPorId(triagemId: string) {
-  return api.get(`/triagens/${triagemId}`);
+  return api.get<RespostaTriagemCompleta>(
+    `/triagens/${triagemId}`,
+  );
+}
+
+export function enviarMensagemMaria(
+  triagemId: string,
+  mensagem: string,
+) {
+  return api.post<RespostaMensagemMaria>('/maria/mensagem', {
+    triagem_id: triagemId,
+    mensagem,
+  });
 }
 
 export function buscarPainelMedico() {

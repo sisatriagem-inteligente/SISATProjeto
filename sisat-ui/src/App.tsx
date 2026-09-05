@@ -30,12 +30,12 @@ function App(){
           <Route path="/cadastro" element={<Cadastro />} />
           <Route path='/inicioPaciente' element={<InicioPaciente />}/>
           <Route path="/verAnteriores" element={<VerAnteriores />} />
-          <Route path="/chatbot" element={<Chatbot />} />
+          <Route path="/chatbot/:triagemId" element={<Chatbot />} />
 
           {/* rotas para o médico */}
           <Route path="/loginMedico" element={<LoginMedico />} />
           <Route path="/inicioMedico" element={<InicioMedico />} />
-          <Route path="/ficha-atendimento" element={<FichaMed />} />
+          <Route path="/ficha-atendimento/:triagemId" element={<FichaMed />} />
           <Route path="/painelAtendimento" element={<PainelAtendimento />} />
           
         </Routes>

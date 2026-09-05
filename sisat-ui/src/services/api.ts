@@ -9,30 +9,6 @@ const api = axios.create({
     'http://localhost:3000',
 });
 
-//ADICIONADO PARA O FUNCIONAMENTO DO FRONTEND
-
-export interface AtendimentoEmAndamento {
-  id: string;
-  nome: string;
-  idade: number;
-  sexo: string;
-  data: string;
-  sintomas: string;
-  prioridade: 'vermelho' | 'amarelo' | 'verde';
-}
-
-export async function buscarAtendimentosEmAndamento() {
-  const resposta = await api.get<AtendimentoEmAndamento[]>(
-    'COLOCAR_AQUI_A_ROTA_REAL'
-  );
-
-  return resposta.data;
-}
-
-
-
-//FIM DO ADICIONADO PARA O FUNCIONAMENTO DO FRONTEND
-
 export interface UsuarioSISAT {
   id: string;
   cpf?: string;

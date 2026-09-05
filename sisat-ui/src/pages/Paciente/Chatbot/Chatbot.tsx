@@ -1,7 +1,9 @@
 import {useState} from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import './Chatbot.css';
 import MarIA from '../../../assets/img/MarIA.png';
+import { obterMensagemErro } from '../../../services/api';
+import { enviarMensagemMaria } from '../../../services/triagensApi';
 
 interface Mensagem {
     id: number;
@@ -12,6 +14,7 @@ interface Mensagem {
 export default function Chatbot() {
 
     const navigate = useNavigate(); //usados para o pop-up de confirmação de sair do chat
+    const { triagemId } = useParams();
 
     const [mostrarConfirmacao, setMostrarConfirmacao] = useState(false); //usados para o pop-up de confirmação de sair do chat
 
@@ -24,15 +27,19 @@ export default function Chatbot() {
     ]);
 
     const [texto, setTexto] = useState('');
+    const [carregando, setCarregando] = useState(false);
+    const [finalizada, setFinalizada] = useState(false);
+    const [erro, setErro] = useState('');
 
-    function enviarMensagem() {
-        if (texto.trim() === '') {
+    async function enviarMensagem() {
+        const conteudo = texto.trim();
+        if (conteudo === '' || carregando || finalizada || !triagemId) {
             return;
         }
 
         const novaMensagemUsuario: Mensagem = {
             id: Date.now(),
-            texto: texto.trim(),
+            texto: conteudo,
             tipo: 'usuario'
         };
 
@@ -42,6 +49,27 @@ export default function Chatbot() {
         ]);
 
         setTexto('');
+        setErro('');
+        setCarregando(true);
+
+        try {
+            const resposta = await enviarMensagemMaria(triagemId, conteudo);
+            const novaMensagemBot: Mensagem = {
+                id: Date.now() + 1,
+                texto: resposta.data.mensagem,
+                tipo: 'bot',
+            };
+            setMensagens((anteriores) => [...anteriores, novaMensagemBot]);
+
+            if (resposta.data.finalizada) {
+                setFinalizada(true);
+                localStorage.removeItem('triagem_ativa_id');
+            }
+        } catch (falha) {
+            setErro(obterMensagemErro(falha));
+        } finally {
+            setCarregando(false);
+        }
     }
 
     function abrirConfirmacao() { //abre o pop-up de confirmação de sair do chat
@@ -99,6 +127,16 @@ export default function Chatbot() {
 
                             </div>
                     ))}
+                    {carregando && (
+                        <div className="chatbot-message bot">
+                            <div className="message">A MarIA está analisando...</div>
+                        </div>
+                    )}
+                    {erro && (
+                        <div className="chatbot-message bot">
+                            <div className="message">{erro}</div>
+                        </div>
+                    )}
                 </section>
 
 
@@ -108,8 +146,8 @@ export default function Chatbot() {
                     enviarMensagem();
                 }}
                 >
-                    <input type="text" placeholder="Digite aqui..." value={texto} onChange={(evento) => setTexto(evento.target.value)} />
-                    <button type="submit" aria-label="Enviar mensagem">
+                    <input type="text" placeholder={finalizada ? 'Triagem finalizada' : 'Digite aqui...'} value={texto} onChange={(evento) => setTexto(evento.target.value)} disabled={carregando || finalizada} />
+                    <button type="submit" aria-label="Enviar mensagem" disabled={carregando || finalizada}>
                         ➤
                     </button>
 
@@ -123,7 +161,7 @@ export default function Chatbot() {
                         <div className="confirmacao-modal">
 
                             <h2>Tem certeza que deseja abandonar a triagem?</h2>
-                            <p>Todo seu histórico será perdido.</p>
+                            <p>Você poderá continuar esta triagem depois.</p>
 
                             <div className="confirmacao-botoes">
                                 <button

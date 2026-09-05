@@ -1,11 +1,43 @@
 import './InicioPaciente.css';
 import bemVindo from '../../../assets/img/bemvindo-paciente.png';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
+import { obterMensagemErro, obterUsuario } from '../../../services/api';
+import { criarTriagem } from '../../../services/triagensApi';
 
 export default function InicioPaciente(){
+    const navigate = useNavigate();
 
     const [mostrarDica, setMostrarDica] = useState(false);
+    const [iniciando, setIniciando] = useState(false);
+    const [erro, setErro] = useState('');
+
+    async function comecarTriagem() {
+        const triagemAtiva = localStorage.getItem('triagem_ativa_id');
+        if (triagemAtiva) {
+            navigate(`/chatbot/${triagemAtiva}`);
+            return;
+        }
+
+        const usuario = obterUsuario();
+        if (!usuario || usuario.role !== 'paciente') {
+            navigate('/login');
+            return;
+        }
+
+        setIniciando(true);
+        setErro('');
+        try {
+            const resposta = await criarTriagem(usuario.id);
+            const triagemId = resposta.data.triagem.id;
+            localStorage.setItem('triagem_ativa_id', triagemId);
+            navigate(`/chatbot/${triagemId}`);
+        } catch (falha) {
+            setErro(obterMensagemErro(falha));
+        } finally {
+            setIniciando(false);
+        }
+    }
 
     return(
         <div className='ip-container'>
@@ -20,14 +52,16 @@ export default function InicioPaciente(){
                     <div className='ip-btn-block'>
 
                         
-                            <Link to='/chatbot' className='btn-comecarTri'>
+                            <button type='button' className='btn-comecarTri' onClick={comecarTriagem} disabled={iniciando}>
                                 <span className='icone'>
                                     <i className="bi bi-plus-lg" />
                                 </span>
                                 <span>
-                                    Começar Triagem                              
+                                    {iniciando ? 'Iniciando...' : 'Começar Triagem'}
                                 </span>
-                            </Link>
+                            </button>
+
+                            {erro && <p>{erro}</p>}
                         
                         
                             <Link to='/verAnteriores' className='btn-verAnt'>

@@ -14,50 +14,37 @@ import {
  */
 import { HydratedDocument } from 'mongoose';
 
-/*
- * Define o tipo dos documentos da coleção "medicos".
+/**
+ * Tipo que representa um documento de médico
+ * retornado pelo Mongoose.
  *
- * Esse tipo é usado no AuthService:
- *
- * Model<DoctorDocument>
+ * Além dos atributos definidos na classe Doctor,
+ * o documento possui propriedades do MongoDB,
+ * como o _id, e métodos disponibilizados pelo Mongoose.
  */
 export type DoctorDocument =
   HydratedDocument<Doctor>;
 
-/*
- * Transforma a classe Doctor em um schema do Mongoose.
+/**
+ * Representa um médico armazenado no banco de dados.
  *
- * timestamps: true
- * adiciona automaticamente:
- *
- * createdAt
- * updatedAt
- *
- * collection: 'medicos'
- * define a coleção utilizada no banco BD_SISAT.
+ * Este schema define a estrutura dos documentos
+ * da coleção "medicos", utilizada na autenticação
+ * dos médicos do SISAT.
  */
 @Schema({
   collection: 'medicos',
 })
 export class Doctor {
-  /*
-   * E-mail institucional do médico.
+ /**
+   * E-mail institucional utilizado para identificar
+   * e autenticar o médico.
    *
-   * required: true
-   * torna o campo obrigatório.
+   * O campo é obrigatório, único e armazenado
+   * em letras minúsculas, sem espaços nas extremidades.
    *
-   * unique: true
-   * impede dois médicos com o mesmo e-mail.
-   *
-   * lowercase: true
-   * salva o e-mail em letras minúsculas.
-   *
-   * trim: true
-   * remove espaços no início e no final.
-   *
-   * A regra que exige @sisat.com não está no schema.
-   * Ela é validada pelo LoginMedicoDto e reforçada
-   * pelo AuthService.
+   * A validação do domínio institucional "@sisat.com"
+   * é realizada em outras camadas da aplicação.
    */
   @Prop({
     required: true,
@@ -67,14 +54,13 @@ export class Doctor {
   })
   email!: string;
 
-  /*
-   * Hash da senha do médico.
+   /**
+   * Senha do médico armazenada de forma protegida.
    *
-   * A senha original não deve ser armazenada.
-   *
-   * Durante o login, o AuthService utiliza:
-   *
-   * bcrypt.compare(data.password, doctor.senha)
+   * O banco não deve armazenar a senha original.
+   * Durante o login, o AuthService utiliza o bcrypt
+   * para comparar a senha informada com o hash salvo
+   * neste campo.
    */
   @Prop({
     required: true,
@@ -82,45 +68,14 @@ export class Doctor {
   senha!: string;
 }
 
-/*
- * Converte a classe Doctor em um schema do Mongoose.
+/**
+ * Gera o schema do Mongoose a partir da classe Doctor.
  *
- * Esse schema será registrado no AuthModule.
+ * O DoctorSchema é registrado nos módulos que precisam
+ * acessar a coleção de médicos por meio do Mongoose.
  */
 export const DoctorSchema =
   SchemaFactory.createForClass(Doctor);
 
 
-  /**Como esse schema é utilizado
-
-No AuthModule:
-
-MongooseModule.forFeature([
-  {
-    name: Doctor.name,
-    schema: DoctorSchema,
-  },
-]);
-
-No AuthService:
-
-@InjectModel(Doctor.name)
-private readonly doctorModel: Model<DoctorDocument>
-
-No login:
-
-const doctor = await this.doctorModel
-  .findOne({ email })
-  .exec();
-Documento médico no MongoDB
-{
-  "_id": "ObjectId(...)",
-  "email": "medico@sisat.com",
-  "senha": "$2b$10$...",
-  "createdAt": "2026-07-11T...",
-  "updatedAt": "2026-07-11T..."
-}
-
-O médico não possui CPF nem CRM porque, na versão atual do SISAT, sua autenticação é feita apenas com:
-
-e-mail @sisat.com + senha */
+ 

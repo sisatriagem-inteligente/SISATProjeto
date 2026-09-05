@@ -1,25 +1,18 @@
 import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { buscarAtendimentosEmAndamento } from "../../../services/api";
+import { obterMensagemErro } from "../../../services/api";
+import { buscarPainelMedico, type TriagemPainelMedico } from "../../../services/triagensApi";
 import CardAtendimento from "../../../components/CardAtendimento/CardAtendimento";
 import "./PainelAtendimento.css";
-
-interface Paciente {
-    id: string;
-    nome: string;
-    idade: number;
-    sexo: string;
-    data: string;
-    sintomas: string;
-    prioridade: "vermelho" | "amarelo" | "verde";
-}
 
 function PainelAtendimento() {
 
     const navigate = useNavigate();
 
-    const [pacientes, setPacientes] = useState<Paciente[]>([]);
+    const [triagens, setTriagens] = useState<TriagemPainelMedico[]>([]);
+    const [carregando, setCarregando] = useState(true);
+    const [erro, setErro] = useState('');
 
     useEffect(() => {
 
@@ -27,16 +20,14 @@ function PainelAtendimento() {
 
             try {
 
-                const dados = await buscarAtendimentosEmAndamento();
-
-                setPacientes(dados);
+                const resposta = await buscarPainelMedico();
+                setTriagens(resposta.data.triagens);
 
             } catch (erro) {
 
-                console.error(
-                    "Erro ao carregar atendimentos:",
-                    erro
-                );
+                setErro(obterMensagemErro(erro));
+            } finally {
+                setCarregando(false);
 
             }
 
@@ -76,19 +67,24 @@ function PainelAtendimento() {
 
             <section className="lista-atendimentos">
 
-                {pacientes.map((paciente) => (
+                {carregando && <p>Carregando atendimentos...</p>}
+                {erro && <p>{erro}</p>}
+                {!carregando && !erro && triagens.length === 0 && (
+                    <p>Nenhum paciente aguardando atendimento.</p>
+                )}
+                {triagens.map((triagem) => (
 
                     <CardAtendimento
-                        key={paciente.id}
-                        id={paciente.id}
-                        nome={paciente.nome}
-                        idade={paciente.idade}
-                        sexo={paciente.sexo}
-                        data={paciente.data}
-                        sintomas={paciente.sintomas}
-                        prioridade={paciente.prioridade}
+                        key={triagem.id}
+                        id={triagem.id}
+                        nome={triagem.paciente.nome ?? 'Não informado'}
+                        idade={triagem.paciente.idade ?? 0}
+                        sexo={triagem.paciente.sexo ?? 'Não informado'}
+                        data={new Date(triagem.data_hora_entrada).toLocaleDateString('pt-BR')}
+                        sintomas={triagem.sintomas.join(', ') || triagem.queixa_principal || 'Não informado'}
+                        prioridade={triagem.cor_classificacao ?? 'verde'}
                         onVerCompleto={() =>
-                            abrirAtendimento(paciente.id)
+                            abrirAtendimento(triagem.id)
                         }
                     />
 

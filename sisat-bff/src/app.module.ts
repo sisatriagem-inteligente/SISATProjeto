@@ -1,127 +1,62 @@
-/*
- * Module é o decorator usado para declarar um módulo NestJS.
- */
 import { Module } from '@nestjs/common';
-
-/*
- * MongooseModule permite conectar o NestJS ao MongoDB.
- */
 import { MongooseModule } from '@nestjs/mongoose';
 
-/*
- * Controller principal criado inicialmente pelo NestJS.
- *
- * Ele normalmente contém uma rota de teste, como:
- *
- * GET /
- */
 import { AppController } from './app.controller';
-
-/*
- * Service principal criado inicialmente pelo NestJS.
- *
- * Ele costuma ser utilizado pelo AppController.
- */
 import { AppService } from './app.service';
 
-/*
- * Módulo responsável pelas funcionalidades de autenticação:
- *
- * - cadastro do paciente;
- * - login do paciente;
- * - login do médico;
- * - bcrypt;
- * - JWT.
- */
 import { AuthModule } from './auth/auth.module';
-
 import { TriagensModule } from './triagens/triagem.module';
+import { MariaModule } from './maria/maria.module';
 
-/*
- * Declara o módulo principal da aplicação.
+/**
+ * Módulo principal da aplicação.
+ *
+ * O AppModule funciona como ponto central do backend,
+ * reunindo a conexão com o banco de dados e os módulos
+ * responsáveis pelas funcionalidades do SISAT.
  */
 @Module({
-  /*
-   * Módulos importados e disponibilizados para a aplicação.
-   */
   imports: [
-    /*
-     * Cria a conexão principal com o MongoDB.
+    /**
+     * Cria a conexão principal da aplicação
+     * com o banco MongoDB.
      *
-     * mongodb://localhost:27017
-     * indica que o MongoDB está rodando localmente.
-     *
-     * BD_SISAT
-     * é o nome do banco utilizado pelo projeto.
+     * Neste projeto, o MongoDB está sendo executado
+     * localmente e utiliza o banco BD_SISAT.
      */
     MongooseModule.forRoot(
       'mongodb://localhost:27017/BD_SISAT',
     ),
 
-    /*
-     * Importa o módulo de autenticação.
-     *
-     * Ao importar o AuthModule, a aplicação passa
-     * a conhecer:
-     *
-     * AuthController
-     * AuthService
-     * PatientSchema
-     * DoctorSchema
-     * JwtModule
+    /**
+     * Módulo responsável pelo cadastro
+     * e autenticação de pacientes e médicos.
      */
     AuthModule,
+
+    /**
+     * Módulo responsável pelo fluxo
+     * de triagens e atendimentos.
+     */
     TriagensModule,
+
+    /**
+     * Módulo responsável pela comunicação entre
+     * o frontend, o BFF e a API da MarIA.
+     */
+    MariaModule,
   ],
 
-  /*
-   * Controllers pertencentes diretamente ao AppModule.
+  /**
+   * Controller principal criado na estrutura
+   * inicial da aplicação NestJS.
    */
   controllers: [AppController],
 
-  /*
-   * Services pertencentes diretamente ao AppModule.
+  /**
+   * Service principal utilizado
+   * pelo AppController.
    */
   providers: [AppService],
 })
 export class AppModule {}
-
-
-/*O AuthModule contém:
-
-MongooseModule.forFeature([
-  PatientSchema,
-  DoctorSchema,
-]);
-
-O forRoot() cria a conexão geral, enquanto o forFeature() registra quais schemas aquele módulo utilizará.
-
-Diferença entre forRoot e forFeature
-MongooseModule.forRoot()
-
-Cria a conexão com o banco:
-
-MongooseModule.forRoot(
-  'mongodb://localhost:27017/BD_SISAT',
-);
-
-Deve aparecer normalmente apenas uma vez na aplicação.
-
-MongooseModule.forFeature()
-
-Registra os schemas de um módulo específico:
-
-MongooseModule.forFeature([
-  {
-    name: Patient.name,
-    schema: PatientSchema,
-  },
-  {
-    name: Doctor.name,
-    schema: DoctorSchema,
-  },
-]);
-
-Pode aparecer em diferentes módulos, dependendo das coleções usadas.
-
-O fluxo é:* */

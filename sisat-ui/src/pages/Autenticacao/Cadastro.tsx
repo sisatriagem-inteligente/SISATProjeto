@@ -1,14 +1,21 @@
-import { useState } from 'react';
+import { useState, type FormEvent } from 'react';
 import '/src/pages/Autenticacao/Auth.css';
 //importando a imagem da logo do sisat
 import logoImg from '/src/assets/img/logoMaisGrossa.png'
 
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { cadastrarPaciente, obterMensagemErro } from '../../services/api';
 
 
 export default function Cadastro(){
+  const navigate = useNavigate();
   // fazendo o ponto e o tracinho do cpf↓
   const [cpf,setCpf] = useState('');   //criando um estado para o valor do CPF
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmarSenha, setConfirmarSenha] = useState('');
+  const [mensagem, setMensagem] = useState('');
+  const [carregando, setCarregando] = useState(false);
 
   //essas duas linhas seguintes vão ser responsáveis pelo olhinho de mostrar senha
   const [mostrarSenha, setMostrarSenha] = useState(false);
@@ -32,6 +39,30 @@ export default function Cadastro(){
 
   }
 
+  async function handleCadastro(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setMensagem('');
+
+    if (password !== confirmarSenha) {
+      setMensagem('As senhas não são iguais.');
+      return;
+    }
+
+    setCarregando(true);
+    try {
+      await cadastrarPaciente({
+        cpf: cpf.replace(/\D/g, ''),
+        email,
+        password,
+      });
+      navigate('/login');
+    } catch (erro) {
+      setMensagem(obterMensagemErro(erro));
+    } finally {
+      setCarregando(false);
+    }
+  }
+
   
   return (  
     <div className="login-container">   {/* isso é como se faz um comentario dentro do return (JSX)*/ }
@@ -46,7 +77,7 @@ export default function Cadastro(){
         </div>
 
        {/* Formulário */}
-       <form className='login-form'>
+       <form className='login-form' onSubmit={handleCadastro}>
 
         <div className='input-group'>
           <label htmlFor='cpf'>CPF:</label> 
@@ -62,7 +93,7 @@ export default function Cadastro(){
 
         <div className='input-group'>
           <label htmlFor='email'>E-mail:</label>
-          <input type='email' id='email' placeholder='nome.sobrenome@dominio.com'/>
+          <input type='email' id='email' placeholder='nome.sobrenome@dominio.com' value={email} onChange={(evento) => setEmail(evento.target.value)}/>
         </div>
 
        {/* senha e confirmação de senha */}
@@ -74,6 +105,8 @@ export default function Cadastro(){
               type={ mostrarSenha ? 'text' : 'password'}
               id='senha' 
               placeholder='••••••••••••' 
+              value={password}
+              onChange={(evento) => setPassword(evento.target.value)}
             />
             <i
               className={`bi ${mostrarSenha ? 'bi-eye' : 'bi-eye-slash'}`}
@@ -89,6 +122,8 @@ export default function Cadastro(){
               type={ mostrarConfirmarSenha ? 'text' : 'password'}
               id='senhaConfirm' 
               placeholder='••••••••••••' 
+              value={confirmarSenha}
+              onChange={(evento) => setConfirmarSenha(evento.target.value)}
             />
             <i
               className={`bi ${mostrarConfirmarSenha ? 'bi-eye' : 'bi-eye-slash'}`}
@@ -97,10 +132,12 @@ export default function Cadastro(){
           </div>  
         </div>
 
-        <button type='submit' className='submit-btn'>
-          Criar conta
+        <button type='submit' className='submit-btn' disabled={carregando}>
+          {carregando ? 'Cadastrando...' : 'Criar conta'}
         </button>
        </form>
+
+       {mensagem && <p className='auth-message'>{mensagem}</p>}
 
        {/* Links de Rodapé */}
        <div className='login-footer'>

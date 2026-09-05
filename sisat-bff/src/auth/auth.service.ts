@@ -44,18 +44,35 @@ import { UserRole } from './enums/user-role.enum';
 // Interface que define os dados armazenados dentro do JWT.
 import { JwtPayload } from './interfaces/jwt-payload.interface';
 
-/*
- * O decorator @Injectable() permite que esta classe seja
- * injetada em outros componentes do NestJS, como o controller.
+/**
+ * Service responsável pelas regras de autenticação
+ * e cadastro de usuários do SISAT.
+ *
+ * Esta classe realiza:
+ * - cadastro de pacientes;
+ * - autenticação de pacientes;
+ * - autenticação de médicos;
+ * - proteção das senhas utilizando bcrypt;
+ * - geração de tokens JWT após um login válido.
+ *
+ * O service acessa diretamente as coleções de
+ * pacientes e médicos por meio dos models do Mongoose.
  */
 @Injectable()
 export class AuthService {
   constructor(
-    /*
-     * Injeta o model responsável pela coleção "pacientes".
-     *
-     * Ele será usado para cadastrar e procurar pacientes.
-     */
+    /**
+   * Injeta as dependências utilizadas pelo service.
+   *
+   * patientModel:
+   * permite acessar a coleção "pacientes".
+   *
+   * doctorModel:
+   * permite acessar a coleção "medicos".
+   *
+   * jwtService:
+   * responsável pela geração dos tokens JWT.
+   */
     @InjectModel(Patient.name)
     private readonly patientModel: Model<PatientDocument>,
 

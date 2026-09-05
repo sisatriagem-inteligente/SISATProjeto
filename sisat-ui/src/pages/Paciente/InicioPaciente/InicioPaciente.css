@@ -123,6 +123,9 @@
 .btn-comecarTri{
     padding: 20px;
     color: white;
+    border: none;
+    font-family: inherit;
+    cursor: pointer;
     background: linear-gradient(
         140deg,
         rgb(131, 214, 240) 30%, 

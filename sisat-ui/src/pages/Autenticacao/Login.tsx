@@ -1,13 +1,18 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useState, type FormEvent } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import '/src/pages/Autenticacao/Auth.css';
 //importando a imagem da logo do sisat ↓
 import logoImg from '/src/assets/img/logoMaisGrossa.png'
+import { loginPaciente, obterMensagemErro } from '../../services/api';
 
 
 
 export default function Login(){
+    const navigate = useNavigate();
     const [cpf,setCpf] = useState('');
+    const [password, setPassword] = useState('');
+    const [mensagem, setMensagem] = useState('');
+    const [carregando, setCarregando] = useState(false);
     
     const [mostrarSenha, setMostrarSenha] = useState(false);
 
@@ -28,6 +33,24 @@ export default function Login(){
     setCpf(value);
 
     }
+
+    async function handleLogin(event: FormEvent<HTMLFormElement>) {
+      event.preventDefault();
+      setMensagem('');
+      setCarregando(true);
+
+      try {
+        await loginPaciente({
+          cpf: cpf.replace(/\D/g, ''),
+          password,
+        });
+        navigate('/inicioPaciente');
+      } catch (erro) {
+        setMensagem(obterMensagemErro(erro));
+      } finally {
+        setCarregando(false);
+      }
+    }
   return (
     <div className="login-container">  {/* isso é como se faz um comentario dentro do return (JSX)*/}
     <h1 className='sr-only'>Entrar no SISAT</h1>
@@ -41,7 +64,7 @@ export default function Login(){
         </div>
 
        {/* Formulário */}
-       <form className='login-form'>
+       <form className='login-form' onSubmit={handleLogin}>
 
         <div className='input-group'>
           <label htmlFor='cpf'>CPF:</label>  
@@ -64,6 +87,8 @@ export default function Login(){
               type={mostrarSenha ? 'text' : 'password'} 
               id='senha' 
               placeholder='••••••••••••' 
+              value={password}
+              onChange={(evento) => setPassword(evento.target.value)}
             />
             
             {/* ícone do olhinho (também muda dependedndo do estado) */}
@@ -74,10 +99,12 @@ export default function Login(){
           </div>
         </div>
 
-        <button type='submit' className='submit-btn'>
-          Entrar
+        <button type='submit' className='submit-btn' disabled={carregando}>
+          {carregando ? 'Entrando...' : 'Entrar'}
         </button>
        </form>
+
+       {mensagem && <p className='auth-message'>{mensagem}</p>}
 
        {/* Links de Rodapé */}
        <div className='login-footer'>

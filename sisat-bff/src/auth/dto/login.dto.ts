@@ -6,63 +6,51 @@ import {
   Matches,
 } from 'class-validator';
 
-/*
- * Define os dados esperados na rota:
+/**
+ * Define e valida os dados recebidos durante
+ * o login de um paciente.
  *
+ * Utilizado pela rota:
  * POST /auth/paciente/login
- *
- * Corpo esperado:
- * {
- *   "cpf": "12345678901",
- *   "password": "123456"
- * }
  */
 export class LoginDto {
-  /*
-   * Impede o envio de um CPF vazio.
+  /**
+   * CPF utilizado para identificar o paciente.
+   *
+   * Deve conter exatamente 11 números
+   * e ser enviado sem máscara.
    */
   @IsNotEmpty({
     message: 'O CPF é obrigatório.',
   })
 
-  /*
-   * Garante que o CPF seja uma string.
-   */
+  
   @IsString({
     message: 'O CPF deve ser enviado como texto.',
   })
 
-  /*
-   * Exige exatamente 11 caracteres.
-   */
+ 
   @Length(11, 11, {
     message: 'O CPF deve conter exatamente 11 dígitos.',
   })
 
-  /*
-   * Garante que o CPF contenha apenas números.
-   *
-   * O CPF deve chegar sem máscara:
-   * 12345678901
-   *
-   * E não:
-   * 123.456.789-01
-   */
+ 
   @Matches(/^\d{11}$/, {
     message: 'O CPF deve conter apenas números.',
   })
   cpf!: string;
 
-  /*
-   * Impede o envio de uma senha vazia.
+   /**
+   * Senha informada pelo paciente para autenticação.
+   *
+   * O AuthService compara essa senha com o hash
+   * armazenado no banco utilizando bcrypt.
    */
   @IsNotEmpty({
     message: 'A senha é obrigatória.',
   })
 
-  /*
-   * Garante que a senha recebida seja uma string.
-   */
+ 
   @IsString({
     message: 'A senha deve ser um texto.',
   })

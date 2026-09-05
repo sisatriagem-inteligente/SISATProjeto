@@ -26,10 +26,13 @@ export default function Navbar(){
         '/verAnteriores',
         '/chatbot',
         '/inicioMedico',
-        '/painelAtendimentos'
+        '/painelAtendimento'
     ];
 
-    if (!rotasComNavbar.includes(location.pathname)) {
+    const estaNoChatbot = location.pathname.startsWith('/chatbot/');
+    const estaNaFicha = location.pathname.startsWith('/ficha-atendimento/');
+
+    if (!rotasComNavbar.includes(location.pathname) && !estaNoChatbot && !estaNaFicha) {
         return null; // Retorna null para não renderizar a Navbar
     }
 
@@ -58,9 +61,7 @@ export default function Navbar(){
         '/quemSomos'
     ].includes(location.pathname);
 
-    const logoVisivelMobile = ![
-        '/chatbot'
-    ].includes(location.pathname);
+    const logoVisivelMobile = !estaNoChatbot;
 
 
      //função que inverte o estado do menu do celular (se tá aberto, fecha, se tá fechado, abre)
@@ -134,11 +135,11 @@ export default function Navbar(){
             <li><Link to="/inicioPaciente" className='loginMedico'>Nova Triagem</Link></li>
             </>
     
-    } else if (location.pathname === '/inicioMedico' || location.pathname === '/fichaMed'){
+    } else if (location.pathname === '/inicioMedico' || estaNaFicha){
         itensMenu=
          <>
             <li><Link to='/inicioMedico' className='nav-button'>Início</Link></li>
-            <li><Link to="/painelAtendimentos" className='loginMedico'>Ver Painel de Atendimentos</Link></li>
+            <li><Link to="/painelAtendimento" className='loginMedico'>Ver Painel de Atendimentos</Link></li>
             </>
     
     } else{

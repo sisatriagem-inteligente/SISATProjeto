@@ -1,8 +1,27 @@
 import './VerAnteriores.css';
 import CardHistorico from '../../../components/CardHistorico/CardHistorico';
 import { Link } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { obterMensagemErro, obterUsuario } from '../../../services/api';
+import { buscarTriagensDoPaciente, type ItemHistoricoTriagem } from '../../../services/triagensApi';
 
 export default function VerAnteriores(){
+    const usuarioId = obterUsuario()?.id ?? null;
+    const [triagens, setTriagens] = useState<ItemHistoricoTriagem[]>([]);
+    const [carregando, setCarregando] = useState(Boolean(usuarioId));
+    const [erro, setErro] = useState(
+        usuarioId ? '' : 'Faça login para consultar suas triagens.',
+    );
+
+    useEffect(() => {
+        if (!usuarioId) return;
+
+        buscarTriagensDoPaciente(usuarioId)
+            .then((resposta) => setTriagens(resposta.data.triagens))
+            .catch((falha) => setErro(obterMensagemErro(falha)))
+            .finally(() => setCarregando(false));
+    }, [usuarioId]);
+
     return(
         <>
             <main className='verAnt-container'>
@@ -24,19 +43,26 @@ export default function VerAnteriores(){
                         <p>Sintomas</p>
                         <p>Status</p>
                     </div>
-                    <CardHistorico
-                        data="05/07/2026"
-                        hora="17:38"
-                        sintomas="Dor de cabeça, dor na perna"
-                        status="Em andamento"
-                    />
-
-                    <CardHistorico
-                        data="19/04/2026"
-                        hora="12:56"
-                        sintomas="Dor no quadril, falta de ar"
-                        status="Concluído"
-                    />
+                    {carregando && <p>Carregando triagens...</p>}
+                    {erro && <p>{erro}</p>}
+                    {!carregando && !erro && triagens.length === 0 && (
+                        <p>Nenhuma triagem anterior encontrada.</p>
+                    )}
+                    {triagens.map((triagem) => {
+                        const data = new Date(triagem.data_hora_entrada);
+                        return (
+                            <CardHistorico
+                                key={triagem.id}
+                                data={data.toLocaleDateString('pt-BR')}
+                                hora={data.toLocaleTimeString('pt-BR', {
+                                    hour: '2-digit',
+                                    minute: '2-digit',
+                                })}
+                                sintomas={triagem.queixa_principal ?? 'Não informado'}
+                                status={triagem.status === 'Concluida' ? 'Concluído' : 'Em andamento'}
+                            />
+                        );
+                    })}
 
 
                 </section>

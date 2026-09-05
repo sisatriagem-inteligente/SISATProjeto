@@ -1,15 +1,24 @@
-import { useState } from 'react';
-import { useLocation } from 'react-router-dom';
-import { Link } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import MarIAMedico from "../../../assets/img/MarIA-fichamed.png";
 import './FichaMedica.css';
+import { obterMensagemErro, obterUsuario } from '../../../services/api';
+import {
+    buscarTriagemPorId,
+    concluirAtendimento,
+    iniciarAtendimento,
+    salvarInformacoesMedicas,
+    type TriagemCompleta,
+} from '../../../services/triagensApi';
 
 
 export default function FichaMed() {
-
-    const location = useLocation();
-
-    const paciente = location.state?.paciente;
+    const { triagemId } = useParams();
+    const navigate = useNavigate();
+    const [triagem, setTriagem] = useState<TriagemCompleta | null>(null);
+    const [carregando, setCarregando] = useState(true);
+    const [salvando, setSalvando] = useState(false);
+    const [mensagem, setMensagem] = useState('');
 
     // Estados do Formulário
     const [altura, setAltura] = useState('');
@@ -20,9 +29,73 @@ export default function FichaMed() {
     const [temp, setTemp] = useState('');
     const [exameFisico, setExameFisico] = useState('');
 
-    const handleSubmit = (e: React.FormEvent) => {
+    useEffect(() => {
+        async function carregarFicha() {
+            if (!triagemId) {
+                setMensagem('Triagem inválida.');
+                setCarregando(false);
+                return;
+            }
+
+            const usuario = obterUsuario();
+            if (!usuario || usuario.role !== 'medico') {
+                navigate('/loginMedico');
+                return;
+            }
+
+            try {
+                const resposta = await buscarTriagemPorId(triagemId);
+                const dados = resposta.data.triagem;
+
+                setTriagem(dados);
+                setAltura(dados.informacoes_medicas?.altura?.toString() ?? '');
+                setPeso(dados.informacoes_medicas?.peso?.toString() ?? '');
+                setTemp(dados.informacoes_medicas?.temperatura?.toString() ?? '');
+                setFc(dados.informacoes_medicas?.frequencia_cardiaca?.toString() ?? '');
+                setFr(dados.informacoes_medicas?.frequencia_respiratoria?.toString() ?? '');
+                setExameFisico(dados.informacoes_medicas?.exame_fisico_direcionado ?? '');
+                setObservacoes(dados.informacoes_medicas?.observacoes ?? '');
+            } catch (erro) {
+                setMensagem(obterMensagemErro(erro));
+            } finally {
+                setCarregando(false);
+            }
+        }
+
+        void carregarFicha();
+    }, [navigate, triagemId]);
+
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        alert('Formulário Médico Enviado com Sucesso!');
+        if (!triagemId) return;
+
+        setSalvando(true);
+        setMensagem('');
+        try {
+            const usuario = obterUsuario();
+            if (!usuario || usuario.role !== 'medico') {
+                navigate('/loginMedico');
+                return;
+            }
+            if (!triagem?.medico_id) {
+                await iniciarAtendimento(triagemId, usuario.id);
+            }
+            await salvarInformacoesMedicas(triagemId, {
+                ...(altura && { altura: Number(altura.replace(',', '.')) }),
+                ...(peso && { peso: Number(peso.replace(',', '.')) }),
+                ...(temp && { temperatura: Number(temp.replace(',', '.')) }),
+                ...(fc && { frequencia_cardiaca: Number(fc) }),
+                ...(fr && { frequencia_respiratoria: Number(fr) }),
+                ...(exameFisico && { exame_fisico_direcionado: exameFisico }),
+                ...(observacoes && { observacoes }),
+            });
+            await concluirAtendimento(triagemId);
+            navigate('/painelAtendimento');
+        } catch (erro) {
+            setMensagem(obterMensagemErro(erro));
+        } finally {
+            setSalvando(false);
+        }
     };
 
     return (
@@ -31,20 +104,23 @@ export default function FichaMed() {
                 <i className="bi bi-caret-left-fill"/>
             </Link>
 
+            {carregando && <p>Carregando ficha...</p>}
+            {mensagem && <p>{mensagem}</p>}
+
 
             {/* Card do Paciente */}
             <div className='fm-patient-card'>
                 <div className='patient-top'>
                     <div className='patient-avatar'></div>
                     <div className='patient-info'>
-                        <h2 className='patient-name'>{paciente?.nome}</h2>
+                        <h2 className='patient-name'>{triagem?.dados_paciente?.nome}</h2>
                         <div className='patient-badges'>
-                            <span className='badge badge-cyan'>Idade: <strong>{paciente?.idade}</strong></span>
-                            <span className='badge badge-blue'>Sexo: <strong>{paciente?.sexo}</strong></span>
-                            <span className='badge badge-cyan'>Intensidade da dor: <strong>{paciente?.intensidadeDor}</strong></span>
+                            <span className='badge badge-cyan'>Idade: <strong>{triagem?.dados_paciente?.idade}</strong></span>
+                            <span className='badge badge-blue'>Sexo: <strong>{triagem?.dados_paciente?.sexo}</strong></span>
+                            <span className='badge badge-cyan'>Intensidade da dor: <strong>{triagem?.dados_triagem?.intensidade}</strong></span>
                         </div>
                     </div>
-                    <span className='badge badge-date'>Data: <strong>{paciente?.data}</strong></span>
+                    <span className='badge badge-date'>Data: <strong>{triagem ? new Date(triagem.data_hora_entrada).toLocaleDateString('pt-BR') : ''}</strong></span>
                 </div>
 
                 {/* Seção Sintomas */}
@@ -57,7 +133,7 @@ export default function FichaMed() {
                                 <h3>Principais Sintomas</h3>
                             </div>
                             <p className='sintomas-desc'>
-                                {paciente?.sintomas}
+                                {triagem?.dados_triagem?.sintomas.join(', ')}
                             </p>
                         </div>
 
@@ -71,7 +147,7 @@ export default function FichaMed() {
                             </div>
                             <div className='tempo-badge'>
                                 <i className="bi bi-calendar3"></i>
-                                <span>{paciente?.tempoSintomas}</span>
+                                <span>{triagem?.dados_triagem?.tempo_sintomas}</span>
                             </div>
                         </div>
                     </div>
@@ -90,7 +166,10 @@ export default function FichaMed() {
                         <label className='input-inline-label'>
                             <span className='req-star'>*</span>Altura:
                             <input
-                                type="text"
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                required
                                 className='input-mini'
                                 value={altura}
                                 onChange={(e) => setAltura(e.target.value)}
@@ -100,7 +179,10 @@ export default function FichaMed() {
                         <label className='input-inline-label'>
                             <span className='req-star'>*</span>Peso:
                             <input
-                                type="text"
+                                type="number"
+                                min="0"
+                                step="0.1"
+                                required
                                 className='input-mini'
                                 value={peso}
                                 onChange={(e) => setPeso(e.target.value)}
@@ -124,7 +206,10 @@ export default function FichaMed() {
                         <label className='input-inline-label'>
                             <span className='req-star'>*</span>FC:
                             <input
-                                type="text"
+                                type="number"
+                                min="0"
+                                step="1"
+                                required
                                 className='input-mini'
                                 value={fc}
                                 onChange={(e) => setFc(e.target.value)}
@@ -134,7 +219,10 @@ export default function FichaMed() {
                         <label className='input-inline-label'>
                             <span className='req-star'>*</span>FR:
                             <input
-                                type="text"
+                                type="number"
+                                min="0"
+                                step="1"
+                                required
                                 className='input-mini'
                                 value={fr}
                                 onChange={(e) => setFr(e.target.value)}
@@ -144,7 +232,10 @@ export default function FichaMed() {
                         <label className='input-inline-label'>
                             <span className='req-star'>*</span>Temp:
                             <input
-                                type="text"
+                                type="number"
+                                min="0"
+                                step="0.1"
+                                required
                                 className='input-mini'
                                 value={temp}
                                 onChange={(e) => setTemp(e.target.value)}
@@ -166,7 +257,7 @@ export default function FichaMed() {
                     <div className='maria-summary-section'>
                         <span className='maria-summary-tag'>Resumo gerado pela MarIA</span>
                         <p className='maria-summary-text'>
-                           No mínimo 2 linhas
+                           {triagem?.resumo ?? 'Resumo não informado.'}
                         </p>
                     </div>
 
@@ -180,25 +271,21 @@ export default function FichaMed() {
                             <div className='hipotese-bubble'>
                                 <h4 className='hipotese-title'>Hipótese Inicial</h4>
 
-                                <div className='hipotese-item'>
-                                    <p><span className='blue-text bold'>1º:</span> Gripe</p>
-                                    <p><span className='blue-text'>Justificativa:</span> Tosse</p>
-                                </div>
-
-                                <div className='hipotese-item'>
-                                    <p><span className='blue-text bold'>2º:</span> Infarto</p>
-                                    <p><span className='blue-text'>Justificativa:</span> Braço formigando</p>
-                                </div>
-
-                                <div className='hipotese-item'>
-                                    <p><span className='blue-text bold'>3º:</span> Tuberculose</p>
-                                    <p><span className='blue-text'>Justificativa:</span> Tosse e cansaço excessivo</p>
-                                </div>
+                                {triagem?.hipoteses_clinicas_iniciais.length ? (
+                                    triagem.hipoteses_clinicas_iniciais.map((item, indice) => (
+                                        <div className='hipotese-item' key={`${item.hipotese}-${indice}`}>
+                                            <p><span className='blue-text bold'>{indice + 1}º:</span> {item.hipotese}</p>
+                                            <p><span className='blue-text'>Justificativa:</span> {item.justificativa}</p>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <div className='hipotese-item'>Nenhuma hipótese informada.</div>
+                                )}
                             </div>
                         </div>
 
-                        <button type="submit" className='btn-enviar-ficha'>
-                            Salvar Triagem
+                        <button type="submit" className='btn-enviar-ficha' disabled={salvando || carregando}>
+                            {salvando ? 'Salvando...' : 'Salvar Triagem'}
                         </button>
                     </div>
 

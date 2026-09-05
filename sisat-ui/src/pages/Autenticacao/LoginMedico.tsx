@@ -1,12 +1,33 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useState, type FormEvent } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import '/src/pages/Autenticacao/Auth.css';
 //importando a imagem da logo do sisat ↓
 import logoImg from '/src/assets/img/logoMaisGrossa.png'
+import { loginMedico, obterMensagemErro } from '../../services/api';
 
 
 export default function LoginMedico(){
+    const navigate = useNavigate();
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [mensagem, setMensagem] = useState('');
+    const [carregando, setCarregando] = useState(false);
     const [mostrarSenha, setMostrarSenha] = useState(false);
+
+    async function handleLogin(event: FormEvent<HTMLFormElement>) {
+      event.preventDefault();
+      setMensagem('');
+      setCarregando(true);
+
+      try {
+        await loginMedico({ email, password });
+        navigate('/inicioMedico');
+      } catch (erro) {
+        setMensagem(obterMensagemErro(erro));
+      } finally {
+        setCarregando(false);
+      }
+    }
 
     return (
 
@@ -22,7 +43,7 @@ export default function LoginMedico(){
                 </div>
 
         {/* Formulário */}
-        <form className='login-form'>
+        <form className='login-form' onSubmit={handleLogin}>
 
             <div className='input-group'>
             <label htmlFor='email'>Email:</label>  
@@ -30,6 +51,8 @@ export default function LoginMedico(){
                 type='text' 
                 id='email' 
                 placeholder='exemplo@dominio.com'
+                value={email}
+                onChange={(evento) => setEmail(evento.target.value)}
                 />
             </div>
 
@@ -42,6 +65,8 @@ export default function LoginMedico(){
                 type={mostrarSenha ? 'text' : 'password'} 
                 id='senha' 
                 placeholder='••••••••••••' 
+                value={password}
+                onChange={(evento) => setPassword(evento.target.value)}
                 />
                 
                 <i 
@@ -51,10 +76,11 @@ export default function LoginMedico(){
             </div>
             </div>
 
-            <button type='submit' className='submit-btn'>
-            Entrar
+            <button type='submit' className='submit-btn' disabled={carregando}>
+            {carregando ? 'Entrando...' : 'Entrar'}
             </button>
         </form>
+        {mensagem && <p className='auth-message'>{mensagem}</p>}
         {/* Links de Rodapé */}
        <div className='login-footer'>
         <span>Não é profissional de saúde? <Link to='/login'>Entre como paciente</Link></span>
