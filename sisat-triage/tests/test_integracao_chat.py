@@ -26,6 +26,7 @@ class TestIntegracaoChat(unittest.TestCase):
             sintomas=["dor de cabeça"],
         )
         conversador.invoke.return_value = MensagemChatAgente(
+            campo_alvo="sexo",
             mensagem="Qual é o seu sexo?"
         )
 
@@ -51,6 +52,7 @@ class TestIntegracaoChat(unittest.TestCase):
         contexto = conversador.invoke.call_args.args[0][-1].content
         self.assertIn("sexo", contexto)
         self.assertIn("Lucas", contexto)
+        self.assertEqual(extrator.invoke.call_count, 1)
 
     @patch("app.presentation_layer.controller.mensagem_chat_llm")
     @patch("app.presentation_layer.controller.extrator_chat_llm")
@@ -100,6 +102,61 @@ class TestIntegracaoChat(unittest.TestCase):
             dados_ausentes.campos_pendentes(),
         )
 
+    def test_lista_vazia_de_sintomas_significa_resposta_explicita(self):
+        dados = DadosColetaChat(sintomas=[])
+        self.assertNotIn("sintomas", dados.campos_pendentes())
+        self.assertIn("sintomas", DadosColetaChat().campos_pendentes())
+
+    def test_indicador_negativo_converte_valor_ausente_em_lista_vazia(self):
+        dados = DadosColetaChat(
+            sintomas_respondidos=True,
+            informacoes_complementares_respondidas=True,
+        )
+        self.assertEqual(dados.sintomas, [])
+        self.assertEqual(dados.informacoes_complementares, [])
+        self.assertNotIn("sintomas", dados.campos_pendentes())
+        self.assertNotIn(
+            "informações complementares",
+            dados.campos_pendentes(),
+        )
+
+    def test_queixa_principal_compõe_sintomas_quando_lista_for_omitida(self):
+        dados = DadosColetaChat(queixa_principal="dor de cabeça")
+        self.assertEqual(dados.sintomas, ["dor de cabeça"])
+        self.assertTrue(dados.sintomas_respondidos)
+        self.assertNotIn("sintomas", dados.campos_pendentes())
+
+    @patch("app.presentation_layer.controller.mensagem_chat_llm")
+    @patch("app.presentation_layer.controller.extrator_chat_llm")
+    def test_usa_pergunta_generica_se_modelo_falhar_duas_vezes(
+        self,
+        extrator,
+        conversador,
+    ):
+        extrator.invoke.return_value = DadosColetaChat(nome="Lucas")
+        conversador.invoke.side_effect = [
+            MensagemChatAgente(
+                campo_alvo="sexo",
+                mensagem="Qual é o seu sexo?",
+            ),
+            MensagemChatAgente(
+                campo_alvo="sexo",
+                mensagem="Informe seu sexo",
+            ),
+        ]
+
+        resposta = self.client.post("/chat", json={
+            "triagem_id": "triagem-fallback",
+            "messages": [{"role": "user", "content": "Sou Lucas."}],
+        })
+
+        self.assertEqual(resposta.status_code, 200)
+        self.assertEqual(
+            resposta.json()["mensagem"],
+            "Ainda preciso saber sobre idade. Você pode informar?",
+        )
+        self.assertFalse(resposta.json()["finalizada"])
+
     @patch("app.presentation_layer.controller.mensagem_chat_llm")
     @patch("app.presentation_layer.controller.extrator_chat_llm")
     def test_repete_extracao_quando_json_for_invalido(
@@ -112,6 +169,7 @@ class TestIntegracaoChat(unittest.TestCase):
             DadosColetaChat(nome="Lucas"),
         ]
         conversador.invoke.return_value = MensagemChatAgente(
+            campo_alvo="idade",
             mensagem="Qual é a sua idade?"
         )
 
@@ -157,8 +215,14 @@ class TestIntegracaoChat(unittest.TestCase):
             sintomas=["dor de cabeça"],
         )
         conversador.invoke.side_effect = [
-            MensagemChatAgente(mensagem="A dor de cabeça é minha única queixa"),
-            MensagemChatAgente(mensagem="Qual é o seu sexo?"),
+            MensagemChatAgente(
+                campo_alvo="sexo",
+                mensagem="A dor de cabeça é minha única queixa",
+            ),
+            MensagemChatAgente(
+                campo_alvo="sexo",
+                mensagem="Qual é o seu sexo?",
+            ),
         ]
 
         resposta = self.client.post("/chat", json={
@@ -176,7 +240,7 @@ class TestIntegracaoChat(unittest.TestCase):
 
     @patch("app.presentation_layer.controller.mensagem_chat_llm")
     @patch("app.presentation_layer.controller.extrator_chat_llm")
-    def test_combina_valores_validos_das_duas_extracoes(
+    def test_nao_faz_segunda_extracao_quando_a_primeira_e_valida(
         self,
         extrator,
         conversador,
@@ -190,8 +254,8 @@ class TestIntegracaoChat(unittest.TestCase):
             intensidade="moderada",
             informacoes_complementares=[],
         )
-        segunda = DadosColetaChat(tempo_sintomas="3 dias")
-        extrator.invoke.side_effect = [primeira, segunda]
+        primeira.tempo_sintomas = "3 dias"
+        extrator.invoke.return_value = primeira
 
         resposta = self.client.post("/chat", json={
             "triagem_id": "triagem-006",
@@ -203,7 +267,75 @@ class TestIntegracaoChat(unittest.TestCase):
 
         self.assertEqual(resposta.status_code, 200)
         self.assertTrue(resposta.json()["finalizada"])
+        self.assertEqual(extrator.invoke.call_count, 1)
         conversador.invoke.assert_not_called()
+
+    @patch("app.presentation_layer.controller.mensagem_chat_llm")
+    @patch("app.presentation_layer.controller.extrator_chat_llm")
+    def test_rejeita_pergunta_igual_a_ultima_e_tenta_novamente(
+        self,
+        extrator,
+        conversador,
+    ):
+        extrator.invoke.return_value = DadosColetaChat(
+            nome="Lucas",
+            idade=17,
+            queixa_principal="dor de cabeça",
+            sintomas=["dor de cabeça"],
+        )
+        conversador.invoke.side_effect = [
+            MensagemChatAgente(
+                campo_alvo="sexo",
+                mensagem="Qual é o seu sexo?",
+            ),
+            MensagemChatAgente(
+                campo_alvo="sexo",
+                mensagem="Como você informa o seu sexo?",
+            ),
+        ]
+
+        resposta = self.client.post("/chat", json={
+            "triagem_id": "triagem-007",
+            "messages": [
+                {"role": "assistant", "content": "Qual é o seu sexo?"},
+                {"role": "user", "content": "Prefiro não responder."},
+            ],
+        })
+
+        self.assertEqual(resposta.status_code, 200)
+        self.assertEqual(
+            resposta.json()["mensagem"],
+            "Como você informa o seu sexo?",
+        )
+        self.assertEqual(conversador.invoke.call_count, 2)
+
+    @patch("app.presentation_layer.controller.mensagem_chat_llm")
+    @patch("app.presentation_layer.controller.extrator_chat_llm")
+    def test_rejeita_pergunta_sobre_campo_diferente_do_solicitado(
+        self,
+        extrator,
+        conversador,
+    ):
+        extrator.invoke.return_value = DadosColetaChat(nome="Lucas")
+        conversador.invoke.side_effect = [
+            MensagemChatAgente(
+                campo_alvo="sexo",
+                mensagem="Qual é o seu sexo?",
+            ),
+            MensagemChatAgente(
+                campo_alvo="idade",
+                mensagem="Qual é a sua idade?",
+            ),
+        ]
+
+        resposta = self.client.post("/chat", json={
+            "triagem_id": "triagem-008",
+            "messages": [{"role": "user", "content": "Sou Lucas."}],
+        })
+
+        self.assertEqual(resposta.status_code, 200)
+        self.assertEqual(resposta.json()["mensagem"], "Qual é a sua idade?")
+        self.assertEqual(conversador.invoke.call_count, 2)
 
 
 if __name__ == "__main__":

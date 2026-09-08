@@ -1,6 +1,6 @@
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 
 class RespostaChat(BaseModel):
@@ -17,6 +17,18 @@ class RespostaChat(BaseModel):
 
 
 class MensagemChatAgente(BaseModel):
+    campo_alvo: Literal[
+        "nome",
+        "idade",
+        "sexo",
+        "queixa principal",
+        "sintomas",
+        "tempo dos sintomas",
+        "intensidade",
+        "informações complementares",
+    ] = Field(
+        description="Único campo pendente que esta pergunta pretende coletar.",
+    )
     mensagem: str = Field(
         min_length=1,
         description="Próxima mensagem da MarIA para o paciente.",
@@ -46,7 +58,18 @@ class DadosColetaChat(BaseModel):
     )
     sintomas: list[str] | None = Field(
         default=None,
-        description="Sintomas explicitamente relatados pelo paciente.",
+        description=(
+            "Use null se ainda não respondeu, [] se afirmou que não possui "
+            "sintomas, ou uma lista com os sintomas relatados."
+        ),
+    )
+    sintomas_respondidos: bool = Field(
+        default=False,
+        description=(
+            "true se o paciente respondeu sobre seus sintomas, inclusive "
+            "quando respondeu que não possui outros sintomas; false se o "
+            "assunto ainda não foi respondido."
+        ),
     )
     tempo_sintomas: str | None = Field(
         default=None,
@@ -64,6 +87,36 @@ class DadosColetaChat(BaseModel):
             "complementos, ou uma lista com os complementos relatados."
         ),
     )
+    informacoes_complementares_respondidas: bool = Field(
+        default=False,
+        description=(
+            "true se o paciente respondeu sobre informações complementares, "
+            "inclusive quando informou que não possui; false se ainda não "
+            "respondeu."
+        ),
+    )
+
+    @model_validator(mode="after")
+    def normalizar_respostas_de_lista(self):
+        # A queixa principal faz parte do quadro relatado. Se o modelo a
+        # reconheceu, mas não repetiu o mesmo conteúdo em sintomas, preservamos
+        # a informação em vez de voltar a perguntar ao paciente.
+        if self.sintomas is None and self.queixa_principal:
+            self.sintomas = [self.queixa_principal]
+            self.sintomas_respondidos = True
+
+        # Uma lista presente já comprova que houve resposta. Quando o indicador
+        # confirma uma resposta negativa, representamos o valor como lista vazia.
+        if self.sintomas is not None:
+            self.sintomas_respondidos = True
+        elif self.sintomas_respondidos:
+            self.sintomas = []
+
+        if self.informacoes_complementares is not None:
+            self.informacoes_complementares_respondidas = True
+        elif self.informacoes_complementares_respondidas:
+            self.informacoes_complementares = []
+        return self
 
     def combinar(self, outra: "DadosColetaChat") -> "DadosColetaChat":
         def primeiro_valido(nome):
@@ -92,9 +145,16 @@ class DadosColetaChat(BaseModel):
             sexo=primeiro_valido("sexo"),
             queixa_principal=primeiro_valido("queixa_principal"),
             sintomas=sintomas,
+            sintomas_respondidos=(
+                self.sintomas_respondidos or outra.sintomas_respondidos
+            ),
             tempo_sintomas=primeiro_valido("tempo_sintomas"),
             intensidade=primeiro_valido("intensidade"),
             informacoes_complementares=complementares,
+            informacoes_complementares_respondidas=(
+                self.informacoes_complementares_respondidas
+                or outra.informacoes_complementares_respondidas
+            ),
         )
 
     def campos_pendentes(self) -> list[str]:
@@ -103,11 +163,13 @@ class DadosColetaChat(BaseModel):
             "idade": self.idade is not None,
             "sexo": bool(self.sexo),
             "queixa principal": bool(self.queixa_principal),
-            "sintomas": bool(self.sintomas),
+            # None significa que ainda não houve resposta. Uma lista vazia
+            # registra uma resposta negativa explícita do paciente.
+            "sintomas": self.sintomas_respondidos,
             "tempo dos sintomas": bool(self.tempo_sintomas),
             "intensidade": bool(self.intensidade),
             "informações complementares": (
-                self.informacoes_complementares is not None
+                self.informacoes_complementares_respondidas
             ),
         }
         return [campo for campo, informado in valores.items() if not informado]

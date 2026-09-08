@@ -25,10 +25,10 @@ def _historico_langchain(request: TriagemRequest):
 
 def _extrair_dados(historico):
     mensagens = [SystemMessage(content=EXTRACAO_SYSTEM_PROMPT), *historico]
-    resultados = []
-
+    # A primeira extração válida é a fonte de verdade. Uma nova chamada só é
+    # feita quando o modelo não consegue produzir uma saída estruturada válida.
     try:
-        resultados.append(extrator_chat_llm.invoke(mensagens))
+        return extrator_chat_llm.invoke(mensagens)
     except (OutputParserException, ValueError):
         pass
 
@@ -38,22 +38,41 @@ def _extrair_dados(historico):
         "explicitamente fornecidas pelo paciente."
     ))]
     try:
-        resultados.append(extrator_chat_llm.invoke(revisao))
+        return extrator_chat_llm.invoke(revisao)
     except (OutputParserException, ValueError):
-        pass
-
-    if not resultados:
         raise OutputParserException("As duas extrações foram inválidas")
-
-    dados = resultados[0]
-    for resultado in resultados[1:]:
-        dados = dados.combinar(resultado)
-    return dados
 
 
 def _mensagem_e_pergunta(resposta) -> bool:
     mensagem = resposta.mensagem.strip()
     return bool(mensagem) and mensagem.endswith("?")
+
+
+def _normalizar_mensagem(mensagem: str) -> str:
+    return " ".join(mensagem.casefold().strip().rstrip("?.!").split())
+
+
+def _ultima_mensagem_maria(historico) -> str | None:
+    for mensagem in reversed(historico):
+        if isinstance(mensagem, AIMessage):
+            return mensagem.content
+    return None
+
+
+def _pergunta_valida(
+    resposta,
+    ultima_pergunta: str | None,
+    campo_alvo: str,
+) -> bool:
+    if not _mensagem_e_pergunta(resposta):
+        return False
+    if resposta.campo_alvo != campo_alvo:
+        return False
+    if ultima_pergunta is None:
+        return True
+    return _normalizar_mensagem(resposta.mensagem) != _normalizar_mensagem(
+        ultima_pergunta
+    )
 
 
 def processar_chat(request: TriagemRequest):
@@ -73,15 +92,26 @@ def processar_chat(request: TriagemRequest):
 
     # O Python, e não o texto do modelo, decide quando a coleta terminou.
     pendentes = dados.campos_pendentes()
+    print("=== CHAT DEBUG ===")
+    print("DADOS EXTRAÍDOS:")
+    print(dados.model_dump_json(indent=2))
+    print("CAMPOS PENDENTES:")
+    print(pendentes)
     if not pendentes:
+        print("CAMPO ESCOLHIDO: nenhum")
+        print("RESPOSTA GERADA:")
+        print('"Obrigada pelas informações. A coleta foi concluída."')
+        print("=== FIM CHAT DEBUG ===")
         return RespostaChat(
             mensagem="Obrigada pelas informações. A coleta foi concluída.",
             finalizada=True,
         )
 
+    proximo_campo = pendentes[0]
+    print(f"CAMPO ESCOLHIDO: {proximo_campo}")
     contexto = SystemMessage(content=(
         f"Dados já coletados: {dados.model_dump(exclude_none=True)}. "
-        f"Campos pendentes: {pendentes}."
+        f"O único campo que deve ser perguntado agora é: {proximo_campo}."
     ))
     mensagens_chat = [
         SystemMessage(content=CHAT_SYSTEM_PROMPT),
@@ -91,15 +121,19 @@ def processar_chat(request: TriagemRequest):
 
     try:
         resposta = mensagem_chat_llm.invoke(mensagens_chat)
-        precisa_tentar_novamente = not _mensagem_e_pergunta(resposta)
+        precisa_tentar_novamente = not _pergunta_valida(
+            resposta,
+            _ultima_mensagem_maria(historico),
+            proximo_campo,
+        )
     except (OutputParserException, ValueError):
         precisa_tentar_novamente = True
 
     if precisa_tentar_novamente:
         mensagens_chat.append(SystemMessage(content=(
-            "A resposta anterior não foi uma pergunta válida. Responda "
-            "novamente com uma única pergunta objetiva sobre um dos campos "
-            "pendentes e termine a mensagem com ponto de interrogação."
+            "A resposta anterior foi inválida ou repetiu a última pergunta. "
+            "Responda novamente com uma única pergunta objetiva somente sobre "
+            f"o campo {proximo_campo} e termine com ponto de interrogação."
         )))
         try:
             resposta = mensagem_chat_llm.invoke(mensagens_chat)
@@ -112,15 +146,26 @@ def processar_chat(request: TriagemRequest):
                 finalizada=False,
             )
 
-        if not _mensagem_e_pergunta(resposta):
+        if not _pergunta_valida(
+            resposta,
+            _ultima_mensagem_maria(historico),
+            proximo_campo,
+        ):
+            mensagem_fallback = (
+                f"Ainda preciso saber sobre {proximo_campo}. "
+                "Você pode informar?"
+            )
+            print("RESPOSTA GERADA (fallback):")
+            print(repr(mensagem_fallback))
+            print("=== FIM CHAT DEBUG ===")
             return RespostaChat(
-                mensagem=(
-                    "Não consegui formular a próxima pergunta agora. "
-                    "Por favor, envie novamente sua última mensagem."
-                ),
+                mensagem=mensagem_fallback,
                 finalizada=False,
             )
 
+    print("RESPOSTA GERADA:")
+    print(repr(resposta.mensagem))
+    print("=== FIM CHAT DEBUG ===")
     return RespostaChat(mensagem=resposta.mensagem, finalizada=False)
 
 
