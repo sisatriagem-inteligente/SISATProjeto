@@ -180,11 +180,7 @@ export class AuthService {
       senha: hashedPassword,
     });
 
-    /*
-     * Retorna somente dados seguros.
-     *
-     * A senha e o hash não são enviados para o frontend.
-     */
+    
     return {
       message: 'Cadastro do paciente realizado com sucesso.',
       patient: {
@@ -266,9 +262,7 @@ export class AuthService {
     const accessToken =
       await this.jwtService.signAsync(payload);
 
-    /*
-     * Retorna o token e os dados básicos do paciente.
-     */
+   
     return {
       message: 'Login do paciente realizado com sucesso.',
       access_token: accessToken,
@@ -359,9 +353,7 @@ export class AuthService {
     const accessToken =
       await this.jwtService.signAsync(payload);
 
-    /*
-     * Retorna o token e os dados básicos do médico.
-     */
+   
     return {
       message: 'Login médico realizado com sucesso.',
       access_token: accessToken,

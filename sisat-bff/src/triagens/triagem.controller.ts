@@ -155,10 +155,7 @@ async salvarResultadoMaria(
       id,
       resultadoMariaDto,
     );
- /**
-     * Monta a resposta enviada após
-     * a atualização da triagem.
-     */
+ 
   return {
     message:
       'Resultado da MarIA salvo com sucesso.',
@@ -184,10 +181,6 @@ async salvarResultadoMaria(
 
       hipoteses_clinicas_iniciais:
         triagem.hipoteses_clinicas_iniciais,
-
-      historico_chat_id:
-        triagem.historico_chat_id?.toString() ??
-        null,
     },
   };
 }

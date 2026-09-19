@@ -86,6 +86,7 @@ export class CadastroDto {
   password!: string;
 }
 
-/**o frontend envia password, no authservice é transformado em hash e salvo no mongodb como:
- * senha: hashedPassword
+/**
+ * O frontend envia `password`. O AuthService gera o hash
+ * e o armazena no campo `senha` do documento do paciente.
  */

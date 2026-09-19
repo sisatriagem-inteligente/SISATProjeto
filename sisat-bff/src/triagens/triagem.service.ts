@@ -115,11 +115,18 @@ export class TriagensService {
   constructor(
     @InjectModel(Triagem.name)
     private readonly triagemModel: Model<TriagemDocument>,
-    @InjectModel(Doctor.name)   //
+    @InjectModel(Doctor.name)
     private readonly doctorModel:Model<DoctorDocument>,
     @InjectModel(Patient.name)
     private readonly patientModel: Model<PatientDocument>,
   ) {}
+
+  /**
+ * patientModel:
+ * permite confirmar a existência do paciente
+ * antes de criar uma triagem.
+ */
+
 
    /**
    * Cria uma nova triagem para um paciente.
@@ -227,25 +234,6 @@ export class TriagensService {
 
     cor_classificacao,
   };
-
-   /**
-     * O histórico da conversa é opcional.
-     *
-     * Caso seja informado, o valor é convertido
-     * para ObjectId. Se chegar como null,
-     * permanece null no banco.
-     */
-
-  if (
-    resultadoMariaDto.historico_chat_id !== undefined
-  ) {
-    dadosAtualizacao.historico_chat_id =
-      resultadoMariaDto.historico_chat_id
-        ? new Types.ObjectId(
-            resultadoMariaDto.historico_chat_id,
-          )
-        : null;
-  }
 
    /**
      * Atualiza apenas os campos presentes
@@ -486,11 +474,6 @@ async buscarTriagemPorId(triagem_id: string) {
     atendimento_concluido_em:
       triagem.atendimento_concluido_em ??
       null,
-
-      historico_chat_id:
-        triagem.historico_chat_id
-          ? String(triagem.historico_chat_id)
-          : null,
 
       mensagens: triagem.mensagens ?? [],
       chat_finalizado: triagem.chat_finalizado ?? Boolean(triagem.cor_classificacao),
@@ -1168,7 +1151,7 @@ async concluirAtendimento(
 
   return triagem.save();
 }
-
+// Finaliza a triagem e registra o horário
 
 
 

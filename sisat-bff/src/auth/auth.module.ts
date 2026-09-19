@@ -1,25 +1,25 @@
-// Decorator utilizado para declarar um módulo do NestJS.
+
 import { Module } from '@nestjs/common';
 
-// Permite registrar schemas e models do Mongoose.
+
 import { MongooseModule } from '@nestjs/mongoose';
 
-// Módulo responsável pela geração e validação de JWT.
+
 import { JwtModule } from '@nestjs/jwt';
 
-// Service que contém as regras de autenticação.
+
 import { AuthService } from './auth.service';
 
-// Controller que disponibiliza as rotas de autenticação.
+
 import { AuthController } from './auth.controller';
 
-// Model e schema da coleção "pacientes".
+
 import {
   Patient,
   PatientSchema,
 } from './schemas/patient.schema';
 
-// Model e schema da coleção "medicos".
+
 import {
   Doctor,
   DoctorSchema,
