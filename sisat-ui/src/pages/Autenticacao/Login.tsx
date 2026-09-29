@@ -38,12 +38,8 @@ export default function Login(){
       event.preventDefault();
       setMensagem('');
       setCarregando(true);
-
       try {
-        await loginPaciente({
-          cpf: cpf.replace(/\D/g, ''),
-          password,
-        });
+        await loginPaciente({ cpf: cpf.replace(/\D/g, ''), password });
         navigate('/inicioPaciente');
       } catch (erro) {
         setMensagem(obterMensagemErro(erro));
@@ -104,7 +100,7 @@ export default function Login(){
         </button>
        </form>
 
-       {mensagem && <p className='auth-message'>{mensagem}</p>}
+       {mensagem && <p className='auth-message' role='alert'>{mensagem}</p>}
 
        {/* Links de Rodapé */}
        <div className='login-footer'>

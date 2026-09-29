@@ -6,22 +6,22 @@ import { obterMensagemErro, obterUsuario } from '../../../services/api';
 import { criarTriagem } from '../../../services/triagensApi';
 
 export default function InicioPaciente(){
-    const navigate = useNavigate();
 
+    const navigate = useNavigate();
     const [mostrarDica, setMostrarDica] = useState(false);
     const [iniciando, setIniciando] = useState(false);
     const [erro, setErro] = useState('');
 
     async function comecarTriagem() {
-        const triagemAtiva = localStorage.getItem('triagem_ativa_id');
-        if (triagemAtiva) {
-            navigate(`/chatbot/${triagemAtiva}`);
-            return;
-        }
-
         const usuario = obterUsuario();
         if (!usuario || usuario.role !== 'paciente') {
             navigate('/login');
+            return;
+        }
+
+        const triagemAtiva = localStorage.getItem('triagem_ativa_id');
+        if (triagemAtiva) {
+            navigate(`/chatbot/${triagemAtiva}`);
             return;
         }
 
@@ -52,7 +52,7 @@ export default function InicioPaciente(){
                     <div className='ip-btn-block'>
 
                         
-                            <button type='button' className='btn-comecarTri' onClick={comecarTriagem} disabled={iniciando}>
+                            <button type='button' onClick={comecarTriagem} disabled={iniciando} className='btn-comecarTri'>
                                 <span className='icone'>
                                     <i className="bi bi-plus-lg" />
                                 </span>
@@ -60,8 +60,7 @@ export default function InicioPaciente(){
                                     {iniciando ? 'Iniciando...' : 'Começar Triagem'}
                                 </span>
                             </button>
-
-                            {erro && <p>{erro}</p>}
+                            {erro && <p role='alert'>{erro}</p>}
                         
                         
                             <Link to='/verAnteriores' className='btn-verAnt'>

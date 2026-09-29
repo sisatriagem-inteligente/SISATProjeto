@@ -13,6 +13,8 @@ export default function Navbar(){
 
     //estado para controlar o menu no celular
     const [menuAberto, setMenuAberto] = useState(false);
+    const estaNoChatbot = location.pathname.startsWith('/chatbot/');
+    const estaNaFicha = location.pathname.startsWith('/ficha-atendimento/');
 
    //lista de rotas que devem exibir a Navbar
     const rotasComNavbar= [ //aqui estão listadas todas as rotas que devem exibir a Navbar
@@ -24,13 +26,9 @@ export default function Navbar(){
         '/quemSomos',
         '/inicioPaciente',
         '/verAnteriores',
-        '/chatbot',
         '/inicioMedico',
         '/painelAtendimento'
     ];
-
-    const estaNoChatbot = location.pathname.startsWith('/chatbot/');
-    const estaNaFicha = location.pathname.startsWith('/ficha-atendimento/');
 
     if (!rotasComNavbar.includes(location.pathname) && !estaNoChatbot && !estaNaFicha) {
         return null; // Retorna null para não renderizar a Navbar
@@ -135,7 +133,7 @@ export default function Navbar(){
             <li><Link to="/inicioPaciente" className='loginMedico'>Nova Triagem</Link></li>
             </>
     
-    } else if (location.pathname === '/inicioMedico' || estaNaFicha){
+    } else if (location.pathname === '/inicioMedico' || location.pathname === '/painelAtendimento' || estaNaFicha){
         itensMenu=
          <>
             <li><Link to='/inicioMedico' className='nav-button'>Início</Link></li>

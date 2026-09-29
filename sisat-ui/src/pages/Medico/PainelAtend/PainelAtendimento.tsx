@@ -28,7 +28,6 @@ function PainelAtendimento() {
                 setErro(obterMensagemErro(erro));
             } finally {
                 setCarregando(false);
-
             }
 
         }
@@ -68,7 +67,7 @@ function PainelAtendimento() {
             <section className="lista-atendimentos">
 
                 {carregando && <p>Carregando atendimentos...</p>}
-                {erro && <p>{erro}</p>}
+                {erro && <p role='alert'>{erro}</p>}
                 {!carregando && !erro && triagens.length === 0 && (
                     <p>Nenhum paciente aguardando atendimento.</p>
                 )}

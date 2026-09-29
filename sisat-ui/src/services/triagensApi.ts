@@ -1,4 +1,5 @@
 import api from './api';
+
 /**
  * Centraliza os tipos e as requisições utilizadas
  * pelo frontend no fluxo de triagem.
@@ -11,6 +12,7 @@ import api from './api';
  * Valores padronizados pelo backend para representar
  * o estado, a intensidade e a classificação da triagem.
  */
+
 export type StatusTriagem = 'Aguardando' | 'Concluida';
 export type IntensidadeTriagem = 'leve' | 'moderada' | 'intensa';
 export type CorClassificacao = 'verde' | 'amarelo' | 'vermelho';
@@ -24,6 +26,7 @@ export interface DadosPacienteTriagem {
   idade: number;
   sexo: string;
 }
+
 /**
  * Informações clínicas estruturadas pela MarIA
  * a partir das respostas fornecidas pelo paciente.
@@ -35,6 +38,7 @@ export interface DadosTriagemMaria {
   intensidade: IntensidadeTriagem;
   informacoes_complementares: string[];
 }
+
 /**
  * Hipótese inicial gerada como apoio à triagem.
  * Não representa um diagnóstico médico definitivo.
@@ -43,6 +47,7 @@ export interface HipoteseClinicaInicial {
   hipotese: string;
   justificativa: string;
 }
+
 /**
  * Estrutura completa da ficha gerada pela MarIA
  * depois que a coleta da conversa é finalizada.
@@ -55,6 +60,7 @@ export interface ResultadoMaria {
   };
   hipoteses_clinicas_iniciais: HipoteseClinicaInicial[];
 }
+
 /**
  * Informações registradas pelo profissional durante
  * o atendimento. Os campos são opcionais porque
@@ -69,6 +75,7 @@ export interface InformacoesMedicas {
   exame_fisico_direcionado?: string | null;
   observacoes?: string | null;
 }
+
 /**
  * Resposta devolvida pelo BFF após o processamento
  * de uma mensagem pela MarIA.
@@ -80,6 +87,7 @@ export interface RespostaMensagemMaria {
   mensagem: string;
   finalizada: boolean;
 }
+
 /**
  * Representação resumida de uma triagem utilizada
  * na tela de atendimentos anteriores do paciente.
@@ -93,6 +101,7 @@ export interface ItemHistoricoTriagem {
   intensidade: IntensidadeTriagem | null;
   resumo: string | null;
 }
+
 /**
  * Formato devolvido pelo BFF ao consultar
  * o histórico de triagens de um paciente.
@@ -102,6 +111,7 @@ export interface RespostaHistoricoPaciente {
   total_triagens: number;
   triagens: ItemHistoricoTriagem[];
 }
+
 /**
  * Representa os dados detalhados de uma triagem
  * consultada pelo identificador.
@@ -135,6 +145,7 @@ export interface RespostaCriarTriagem {
     status: StatusTriagem;
   };
 }
+
 /**
  * Representa uma triagem disponível no painel médico.
  * O backend já devolve a fila organizada por prioridade
@@ -164,6 +175,7 @@ export interface RespostaPainelMedico {
   total_triagens: number;
   triagens: TriagemPainelMedico[];
 }
+
 /**
  * Cria uma triagem vazia associada ao paciente.
  * Os dados clínicos serão preenchidos posteriormente
@@ -176,6 +188,7 @@ export function criarTriagem(pacienteId: string) {
     paciente_id: pacienteId,
   });
 }
+
 /**
  * Consulta o histórico resumido das triagens
  * já preenchidas para determinado paciente.
@@ -185,10 +198,9 @@ export function criarTriagem(pacienteId: string) {
 export function buscarTriagensDoPaciente(
   pacienteId: string,
 ) {
-  return api.get<RespostaHistoricoPaciente>(
-    `/triagens/paciente/${pacienteId}`,
-  );
+  return api.get<RespostaHistoricoPaciente>(`/triagens/paciente/${pacienteId}`);
 }
+
 /**
  * Recupera os dados completos de uma triagem,
  * incluindo resultado da MarIA e informações médicas.
@@ -196,10 +208,9 @@ export function buscarTriagensDoPaciente(
  * GET /triagens/:id
  */
 export function buscarTriagemPorId(triagemId: string) {
-  return api.get<RespostaTriagemCompleta>(
-    `/triagens/${triagemId}`,
-  );
+  return api.get<RespostaTriagemCompleta>(`/triagens/${triagemId}`);
 }
+
 /**
  * Envia uma nova mensagem do paciente ao BFF.
  *
@@ -209,15 +220,13 @@ export function buscarTriagemPorId(triagemId: string) {
  *
  * POST /maria/mensagem
  */
-export function enviarMensagemMaria(
-  triagemId: string,
-  mensagem: string,
-) {
+export function enviarMensagemMaria(triagemId: string, mensagem: string) {
   return api.post<RespostaMensagemMaria>('/maria/mensagem', {
     triagem_id: triagemId,
     mensagem,
   });
 }
+
 /**
  * Consulta as triagens finalizadas pela MarIA
  * que ainda não foram assumidas por um médico.
@@ -229,6 +238,7 @@ export function buscarPainelMedico() {
     '/triagens/painel-medico',
   );
 }
+
 /**
  * Envia uma ficha estruturada diretamente para
  * uma triagem existente.
@@ -248,6 +258,7 @@ export function salvarResultadoMaria(
     resultado,
   );
 }
+
 /**
  * Associa o médico à triagem e registra
  * o início do atendimento.
@@ -263,6 +274,7 @@ export function iniciarAtendimento(
     { medico_id: medicoId },
   );
 }
+
 /**
  * Atualiza parcialmente as informações médicas
  * registradas durante o atendimento.
@@ -280,6 +292,7 @@ export function salvarInformacoesMedicas(
     informacoes,
   );
 }
+
 /**
  * Consulta os atendimentos em aberto que já foram
  * assumidos pelo médico informado.
@@ -291,6 +304,7 @@ export function buscarAtendimentosDoMedico(
 ) {
   return api.get(`/triagens/medico/${medicoId}`);
 }
+
 /**
  * Finaliza o atendimento médico, altera o status
  * da triagem e registra o horário de conclusão.

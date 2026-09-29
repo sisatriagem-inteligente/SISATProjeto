@@ -1,0 +1,181 @@
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    padding: 20px;
+
+    background: rgba(0, 0, 0, 0.45);
+
+    z-index: 1000;
+}
+
+.modal-triagem-concluida {
+    width: min(540px, 100%);
+
+    padding: 42px 45px 40px;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    text-align: center;
+
+    background: #ffffff;
+    border-radius: 22px;
+
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.22);
+}
+
+.icone-confirmacao {
+    width: 68px;
+    height: 68px;
+
+    margin-bottom: 20px;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    border-radius: 50%;
+
+    background: #e2f6f2;
+    color: #1f7a8c;
+
+    font-size: 38px;
+    font-weight: 700;
+}
+
+.modal-triagem-concluida h2 {
+    margin: 0 0 18px;
+
+    color: #1f5f68;
+
+    font-size: 32px;
+    font-weight: 700;
+}
+
+.modal-triagem-concluida p {
+    max-width: 420px;
+
+    margin: 0;
+
+    color: #494949;
+
+    font-size: 18px;
+    line-height: 1.6;
+}
+
+.modal-observacao {
+    margin-top: 10px !important;
+
+    font-size: 16px !important;
+    line-height: 1.5 !important;
+
+    color: #666666 !important;
+}
+
+.modal-triagem-botoes {
+    width: 100%;
+
+    margin-top: 34px;
+
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.modal-triagem-botoes button {
+    width: 100%;
+    min-height: 52px;
+
+    padding: 12px 20px;
+
+    border-radius: 12px;
+
+    font-family: inherit;
+    font-size: 16px;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition:
+        transform 0.2s ease,
+        background-color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.modal-triagem-botoes button:hover {
+    transform: translateY(-2px);
+}
+
+.modal-triagem-botoes button:focus-visible {
+    outline: 3px solid #8ecae6;
+    outline-offset: 3px;
+}
+
+.btn-historico {
+    border: none;
+
+    background: #1f7a8c;
+    color: #ffffff;
+
+    box-shadow: 0 4px 10px rgba(31, 122, 140, 0.2);
+}
+
+.btn-historico:hover {
+    background: #196b7b;
+}
+
+.btn-inicio {
+    border: 2px solid #1f7a8c;
+
+    background: #e8f7fa;
+    color: #1f5f68;
+}
+
+.btn-inicio:hover {
+    background: #d8f0f4;
+}
+
+@media (max-width: 600px) {
+    .modal-overlay {
+        padding: 16px;
+    }
+
+    .modal-triagem-concluida {
+        width: 100%;
+
+        padding: 35px 25px 30px;
+
+        border-radius: 20px;
+    }
+
+    .icone-confirmacao {
+        width: 58px;
+        height: 58px;
+
+        margin-bottom: 16px;
+
+        font-size: 32px;
+    }
+
+    .modal-triagem-concluida h2 {
+        font-size: 27px;
+    }
+
+    .modal-triagem-concluida p {
+        font-size: 16px;
+    }
+
+    .modal-observacao {
+        font-size: 15px !important;
+    }
+
+    .modal-triagem-botoes {
+        margin-top: 28px;
+    }
+}

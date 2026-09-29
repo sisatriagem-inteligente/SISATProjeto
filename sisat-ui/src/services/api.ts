@@ -10,12 +10,13 @@ export type UserRole = 'paciente' | 'medico';
  * Quando ela não é informada, o frontend utiliza
  * o backend local na porta 3000.
  */
-
+// Usa a URL do .env e mantém localhost como valor padrão.
 const api = axios.create({
   baseURL:
     import.meta.env.VITE_API_URL ||
     'http://localhost:3000',
 });
+
 
 /**
  * Representa os dados básicos do usuário autenticado
@@ -30,7 +31,6 @@ export interface UsuarioSISAT {
   email: string;
   role: UserRole;
 }
-
 
 /**
  * Estruturas enviadas ao BFF nas operações
@@ -68,7 +68,6 @@ export interface RespostaCadastroPaciente {
  * Formato devolvido pelo backend após um login válido.
  * Contém o token JWT e os dados básicos do usuário.
  */
-
 export interface RespostaLogin {
   message: string;
   access_token: string;
@@ -85,7 +84,7 @@ export interface RespostaLogin {
  * a identificação do usuário entre as telas, mas ainda
  * não é adicionado automaticamente às requisições.
  */
-
+// Salva os dados retornados depois de um login válido.
 function salvarSessao(resposta: RespostaLogin) {
   localStorage.setItem(
     'access_token',
@@ -97,6 +96,7 @@ function salvarSessao(resposta: RespostaLogin) {
     JSON.stringify(resposta.user),
   );
 }
+
 /**
  * Envia os dados do novo paciente ao BFF.
  *
@@ -120,7 +120,6 @@ export function cadastrarPaciente(
  * Rota utilizada:
  * POST /auth/paciente/login
  */
-
 export async function loginPaciente(
   dados: DadosLoginPaciente,
 ) {
@@ -132,6 +131,7 @@ export async function loginPaciente(
   salvarSessao(resposta.data);
   return resposta;
 }
+
 /**
  * Autentica o médico por e-mail institucional e senha
  * e armazena localmente os dados da sessão.
@@ -150,6 +150,7 @@ export async function loginMedico(
   salvarSessao(resposta.data);
   return resposta;
 }
+
 /**
  * Recupera o token JWT salvo após o login.
  * Retorna null quando não existe uma sessão armazenada.
@@ -157,6 +158,7 @@ export async function loginMedico(
 export function obterToken() {
   return localStorage.getItem('access_token');
 }
+
 /**
  * Recupera e interpreta os dados do usuário armazenados
  * no navegador. Caso o conteúdo esteja ausente ou seja
@@ -175,6 +177,7 @@ export function obterUsuario(): UsuarioSISAT | null {
     return null;
   }
 }
+
 /**
  * Converte diferentes formatos de erro do Axios
  * em uma mensagem simples para exibição nas telas.
@@ -183,7 +186,6 @@ export function obterUsuario(): UsuarioSISAT | null {
  * mensagens enviadas pelo backend, falhas de conexão
  * e erros inesperados.
  */
-
 export function obterMensagemErro(erro: unknown) {
   if (axios.isAxiosError(erro)) {
     const mensagem = erro.response?.data?.message;
