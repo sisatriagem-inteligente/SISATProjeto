@@ -1,3 +1,7 @@
+# Define as instruções gerais de comportamento da MarIA.
+# Esse prompt orienta o modelo sobre sua função no SISAT,
+# os dados que devem ser coletados e os limites de atuação durante a triagem inicial.
+
 SYSTEM_PROMPT = """
 Você é MarIA, assistente virtual do SISAT (Sistema Inteligente de Saúde e Atendimento), responsável pela triagem inicial de pacientes.
 

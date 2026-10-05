@@ -1,26 +1,31 @@
-#Criar e configurar a MarIA
+# Carrega as configurações definidas no arquivo .env
 from dotenv import load_dotenv
-import os
 
-load_dotenv()   #carrega automaticamente o arquivo .env
+load_dotenv()
 
-from langchain_ollama import ChatOllama #utilizando o ollama
+from langchain_ollama import ChatOllama
 from app.cognitive_layer.prompts import SYSTEM_PROMPT
 from app.cognitive_layer.schemas import DadosColetaChat, MensagemChatAgente
-from langchain.agents import create_agent #usando um agente protno do langchain
+from langchain.agents import create_agent
 
-llm = ChatOllama( #criação da llm
+# Configura o modelo de linguagem utilizado pela MarIA.
+# O Llama 3 é executado localmente por meio do Ollama.
+llm = ChatOllama(
     model="llama3",
     temperature=0,
     max_tokens=800
 )
 
-agent = create_agent( #criação do agente
+# Cria o agente da MarIA utilizando o Llama 3 e as instruções
+# gerais definidas no SYSTEM_PROMPT.
+agent = create_agent(
     model=llm,
     tools=[],
     system_prompt=SYSTEM_PROMPT
 )
 
+# Define as regras utilizadas pelo modelo para extrair do histórico
+# somente as informações fornecidas pelo paciente.
 EXTRACAO_SYSTEM_PROMPT = """
 Extraia somente informações explicitamente fornecidas pelo paciente no
 histórico. Não invente, complete ou deduza dados. Use null para dado ausente.
@@ -43,6 +48,8 @@ respondido sobre informações adicionais, inclusive ao dizer que não possui.
 Esses indicadores representam se houve resposta, não se a lista possui itens.
 """
 
+# Complementa o prompt geral com regras específicas para a conversa.
+# A MarIA recebe um único campo-alvo por vez e deve formular somente a pergunta correspondente a esse campo.
 CHAT_SYSTEM_PROMPT = SYSTEM_PROMPT + """
 
 Você receberá os dados já coletados e exatamente um campo que deve ser
@@ -52,11 +59,14 @@ não repita dados já coletados, não invente informações e não diga que a co
 terminou. No campo `campo_alvo` da resposta, copie exatamente o nome do campo
 que foi solicitado.
 """
-
+# Define que a resposta usada na extração dos dados deve seguir
+# a estrutura do schema DadosColetaChat.
 extrator_chat_llm = llm.with_structured_output(
     DadosColetaChat,
     method="json_schema",
 )
+# Define que a mensagem gerada para o paciente deve seguir
+# a estrutura do schema MensagemChatAgente.
 mensagem_chat_llm = llm.with_structured_output(
     MensagemChatAgente,
     method="json_schema",

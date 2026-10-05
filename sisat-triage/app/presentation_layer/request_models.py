@@ -1,4 +1,5 @@
-from pydantic import BaseModel # Base utilizada pelo Pydantic para validar automaticamente os dados recebidos pela API
+# Base utilizada pelo Pydantic para validar automaticamente os dados recebidos pela API
+from pydantic import BaseModel
 from typing import List
 
 # Representa uma única mensagem enviada durante a conversa entre o paciente e a MarIA

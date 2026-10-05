@@ -4,6 +4,7 @@ from pydantic import BaseModel, Field, model_validator
 
 
 class RespostaChat(BaseModel):
+    # Estrutura da resposta devolvida ao backend durante a conversa.
     mensagem: str = Field(
         min_length=1,
         description="Próxima mensagem da MarIA para o paciente.",
@@ -17,6 +18,8 @@ class RespostaChat(BaseModel):
 
 
 class MensagemChatAgente(BaseModel):
+    # Define qual campo a pergunta deve coletar, evitando que a MarIA
+    # escolha outro assunto diferente do campo pendente.
     campo_alvo: Literal[
         "nome",
         "idade",
@@ -98,15 +101,14 @@ class DadosColetaChat(BaseModel):
 
     @model_validator(mode="after")
     def normalizar_respostas_de_lista(self):
-        # A queixa principal faz parte do quadro relatado. Se o modelo a
-        # reconheceu, mas não repetiu o mesmo conteúdo em sintomas, preservamos
-        # a informação em vez de voltar a perguntar ao paciente.
+       # Se a queixa principal já foi identificada como um sintoma,
+        # adiciona essa informação à lista para evitar uma nova pergunta.
         if self.sintomas is None and self.queixa_principal:
             self.sintomas = [self.queixa_principal]
             self.sintomas_respondidos = True
 
-        # Uma lista presente já comprova que houve resposta. Quando o indicador
-        # confirma uma resposta negativa, representamos o valor como lista vazia.
+        # Uma lista preenchida confirma que o paciente já respondeu.
+        # Se houve uma resposta negativa, a lista vazia representa essa resposta.
         if self.sintomas is not None:
             self.sintomas_respondidos = True
         elif self.sintomas_respondidos:
@@ -119,12 +121,15 @@ class DadosColetaChat(BaseModel):
         return self
 
     def combinar(self, outra: "DadosColetaChat") -> "DadosColetaChat":
+        # Mantém o valor já encontrado e utiliza o novo somente
+        # quando o campo ainda não havia sido preenchido.
         def primeiro_valido(nome):
             atual = getattr(self, nome)
             return atual if atual is not None else getattr(outra, nome)
 
         sintomas = None
         if self.sintomas is not None or outra.sintomas is not None:
+            # Une os sintomas encontrados nas duas extrações e remove duplicados.
             sintomas = list(dict.fromkeys(
                 (self.sintomas or []) + (outra.sintomas or [])
             ))
@@ -134,6 +139,7 @@ class DadosColetaChat(BaseModel):
             self.informacoes_complementares is not None
             or outra.informacoes_complementares is not None
         ):
+            # O mesmo processo é aplicado às informações complementares
             complementares = list(dict.fromkeys(
                 (self.informacoes_complementares or [])
                 + (outra.informacoes_complementares or [])
@@ -158,13 +164,13 @@ class DadosColetaChat(BaseModel):
         )
 
     def campos_pendentes(self) -> list[str]:
+        # Verifica quais informações já foram respondidas para determinar
+        # quais campos ainda precisam ser coletados na conversa.
         valores = {
             "nome": bool(self.nome),
             "idade": self.idade is not None,
             "sexo": bool(self.sexo),
             "queixa principal": bool(self.queixa_principal),
-            # None significa que ainda não houve resposta. Uma lista vazia
-            # registra uma resposta negativa explícita do paciente.
             "sintomas": self.sintomas_respondidos,
             "tempo dos sintomas": bool(self.tempo_sintomas),
             "intensidade": bool(self.intensidade),
@@ -181,11 +187,10 @@ class DadosPaciente(BaseModel):
 
 class DadosTriagem(BaseModel):
     queixa_principal: str
-    sintomas: list[str] #array
+    sintomas: list[str] # Lista de sintomas identificados na triagem.
     tempo_sintomas: str
     intensidade: str
-    informacoes_complementares: list[str] #array
-
+    informacoes_complementares: list[str] # Informações adicionais relatadas.
 class ResumoTriagem(BaseModel):
     resumo: str
 
@@ -194,6 +199,7 @@ class HipoteseClinica(BaseModel):
     justificativa: str
 
 class RespostaFinal(BaseModel):
+    # Reúne todas as partes do resultado final da triagem.
     dados_paciente: DadosPaciente
     dados_triagem: DadosTriagem
     resumo_triagem: ResumoTriagem
