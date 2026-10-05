@@ -20,9 +20,26 @@ import {
   TriagemStatus,
 } from '../triagens/schemas/triagem.schema';
 
+/**
+ * Formato esperado da resposta da rota /chat da MarIA.
+ * A mensagem será exibida ao paciente, enquanto finalizada
+ * indica se a coleta de informações terminou.
+ */
 type RespostaChat = { mensagem: string; finalizada: boolean };
+
+/**
+ * Formato utilizado para enviar o histórico de mensagens à IA.
+ * Os papéis user e assistant identificam paciente e MarIA.
+ */
 type MensagemIA = { role: string; content: string };
 
+/**
+ * Intermedeia a conversa entre o frontend, a API da MarIA
+ * e a triagem armazenada no MongoDB.
+ *
+ * O service recupera o histórico, envia as informações à IA,
+ * valida suas respostas e solicita a gravação dos resultados.
+ */
 @Injectable()
 export class MariaService {
   private readonly mariaApiUrl = (
@@ -36,6 +53,10 @@ export class MariaService {
   constructor(
     @InjectModel(Triagem.name)
     private readonly triagemModel: Model<TriagemDocument>,
+    /**
+     * Service responsável por persistir a conversa
+     * e os dados finais da triagem.
+     */
     private readonly triagensService: TriagensService,
   ) {}
 
@@ -61,9 +82,17 @@ export class MariaService {
     }
   }
 
+  /**
+   * Conduz uma rodada da conversa: recupera o histórico,
+   * chama a MarIA, valida o retorno e salva o resultado.
+   */
   private async processar(id: string, mensagem: string) {
     const triagem = await this.triagemModel.findById(id).exec();
     if (!triagem) throw new NotFoundException('Triagem não encontrada.');
+    /**
+     * Impede novas mensagens quando a coleta terminou
+     * ou quando o atendimento já avançou para a etapa médica.
+     */
     if (
       triagem.status === TriagemStatus.CONCLUIDA ||
       triagem.medico_id ||
@@ -74,6 +103,10 @@ export class MariaService {
         'Esta triagem não está aberta para novas mensagens.',
       );
     }
+    /**
+     * Converte as mensagens salvas no MongoDB para o formato
+     * esperado pela API da MarIA e acrescenta a mensagem atual.
+     */
     const messages: MensagemIA[] = (triagem.mensagens ?? []).map((m) => ({
       role: m.autor === AutorMensagemChat.PACIENTE ? 'user' : 'assistant',
       content: m.texto,
@@ -94,6 +127,10 @@ export class MariaService {
 
     let resultado: ResultadoMariaDto | undefined;
     if (chat.finalizada) {
+      /**
+       * Se a coleta terminou, solicita também a ficha estruturada.
+       * A ficha é validada antes de qualquer gravação no banco.
+       */
       // Usa exatamente o histórico encerrado pelo paciente; não inclui uma
       // mensagem do assistant afirmando fatos novos ou que a ficha foi salva.
       resultado = await this.validarResultado(
@@ -101,6 +138,12 @@ export class MariaService {
       );
     }
 
+    /**
+     * Salva a mensagem do paciente e a resposta da MarIA.
+     * Quando existe um resultado final, ele é salvo na mesma operação.
+     * Se alguma chamada ou validação anterior falhar, este ponto
+     * não é alcançado e o turno atual não é gravado.
+     */
     // Nenhuma mensagem/ficha é gravada se uma chamada ou validação falhar.
     // A persistência de mensagem, resposta e ficha final é uma única operação.
     await this.triagensService.salvarConversaMaria(
@@ -120,9 +163,15 @@ export class MariaService {
       ],
       resultado,
     );
+    // Devolve ao frontend o texto e o estado da coleta.
     return { mensagem: chat.mensagem.trim(), finalizada: chat.finalizada };
   }
 
+  /**
+   * Faz uma requisição HTTP para uma rota da API Python da MarIA.
+   * Trata falhas de conexão, tempo excedido, respostas HTTP
+   * de erro e JSON inválido.
+   */
   private async chamarIA(
     rota: string,
     id: string,
@@ -164,6 +213,13 @@ export class MariaService {
     }
   }
 
+  /**
+   * Confere se a resposta de /chat possui uma mensagem
+   * não vazia e um indicador booleano de finalização.
+   *
+   * O retorno "valor is RespostaChat" permite ao TypeScript
+   * tratar o objeto como RespostaChat após a validação.
+   */
   private chatValido(valor: unknown): valor is RespostaChat {
     if (!valor || typeof valor !== 'object') return false;
     const r = valor as Record<string, unknown>;
@@ -174,6 +230,12 @@ export class MariaService {
     );
   }
 
+  /**
+   * Valida a ficha estruturada recebida de /triagem.
+   * A resposta da IA não é aceita diretamente como dado confiável:
+   * os textos são limpos, a intensidade é padronizada e
+   * o objeto é comparado ao DTO esperado pelo backend.
+   */
   private async validarResultado(valor: unknown): Promise<ResultadoMariaDto> {
     if (!valor || typeof valor !== 'object' || Array.isArray(valor)) {
       throw new BadGatewayException('Ficha da IA inválida.');
@@ -188,6 +250,11 @@ export class MariaService {
       }
     }
     // O ValidationPipe HTTP não é executado em chamadas internas ao service.
+    /**
+     * A validação automática das requisições HTTP não é aplicada
+     * ao retorno recebido internamente da IA. Por isso, o service
+     * cria uma instância do DTO e executa a validação explicitamente.
+     */
     const dto = plainToInstance(ResultadoMariaDto, dados);
     const erros = await validate(dto, {
       whitelist: true,
@@ -206,6 +273,11 @@ export class MariaService {
     return dto;
   }
 
+  /**
+   * Remove espaços no início e no fim de todos os textos,
+   * inclusive os que estão dentro de listas e objetos aninhados.
+   * Valores de outros tipos são preservados.
+   */
   private limparTextos(valor: unknown): unknown {
     if (typeof valor === 'string') return valor.trim();
     if (Array.isArray(valor))

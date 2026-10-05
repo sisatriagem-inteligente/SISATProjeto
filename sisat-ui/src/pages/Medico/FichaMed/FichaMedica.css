@@ -23,15 +23,38 @@
     gap: 20px;
     margin-bottom: 25px;
 }
-
+ /* --- PARTE DA COR DO PROTOCOLO DO PACIENTE --- */
 .patient-avatar {
     width: 65px;
     height: 65px;
     border-radius: 18px;
-    background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 99%); /* isso é o backend que faz? idk */
-
     flex-shrink: 0;
 }
+
+.patient-avatar.vermelho {
+    background: linear-gradient(
+        135deg,
+        #ff6666,
+        #ffb3b3
+    );
+}
+
+.patient-avatar.amarelo {
+    background: linear-gradient(
+        135deg,
+        #ffe537,
+        #fff6a8
+    );
+}
+
+.patient-avatar.verde {
+    background: linear-gradient(
+        135deg,
+        #9cf06b,
+        #d8ffc9
+    );
+}
+/* --- FIM DA PARTE DA COR DO PROTOCOLO DO PACIENTE --- */
 
 .patient-info {
     flex: 1;

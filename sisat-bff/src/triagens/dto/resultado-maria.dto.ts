@@ -124,13 +124,7 @@ export class HipoteseClinicaInicialMariaDto {
  */
 
 export class ResultadoMariaDto {
-   /**
-   * Identificador opcional do histórico
-   * da conversa realizada com a MarIA.
-   */
-  @IsOptional()
-  @IsMongoId()
-  historico_chat_id?: string | null;
+  
 
    /**
    * Dados básicos do paciente.

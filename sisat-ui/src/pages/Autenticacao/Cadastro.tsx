@@ -42,19 +42,13 @@ export default function Cadastro(){
   async function handleCadastro(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setMensagem('');
-
     if (password !== confirmarSenha) {
       setMensagem('As senhas não são iguais.');
       return;
     }
-
     setCarregando(true);
     try {
-      await cadastrarPaciente({
-        cpf: cpf.replace(/\D/g, ''),
-        email,
-        password,
-      });
+      await cadastrarPaciente({ cpf: cpf.replace(/\D/g, ''), email, password });
       navigate('/login');
     } catch (erro) {
       setMensagem(obterMensagemErro(erro));
@@ -137,7 +131,7 @@ export default function Cadastro(){
         </button>
        </form>
 
-       {mensagem && <p className='auth-message'>{mensagem}</p>}
+       {mensagem && <p className='auth-message' role='alert'>{mensagem}</p>}
 
        {/* Links de Rodapé */}
        <div className='login-footer'>

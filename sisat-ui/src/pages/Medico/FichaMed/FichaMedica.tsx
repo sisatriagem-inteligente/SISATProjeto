@@ -1,18 +1,15 @@
 import { useEffect, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
+
 import MarIAMedico from "../../../assets/img/MarIA-fichamed.png";
 import './FichaMedica.css';
+
 import { obterMensagemErro, obterUsuario } from '../../../services/api';
-import {
-    buscarTriagemPorId,
-    concluirAtendimento,
-    iniciarAtendimento,
-    salvarInformacoesMedicas,
-    type TriagemCompleta,
-} from '../../../services/triagensApi';
+import { buscarTriagemPorId, concluirAtendimento, iniciarAtendimento, salvarInformacoesMedicas, type TriagemCompleta } from '../../../services/triagensApi';
 
 
 export default function FichaMed() {
+
     const { triagemId } = useParams();
     const navigate = useNavigate();
     const [triagem, setTriagem] = useState<TriagemCompleta | null>(null);
@@ -30,7 +27,7 @@ export default function FichaMed() {
     const [exameFisico, setExameFisico] = useState('');
 
     useEffect(() => {
-        async function carregarFicha() {
+        async function carregarTriagem() {
             if (!triagemId) {
                 setMensagem('Triagem inválida.');
                 setCarregando(false);
@@ -46,7 +43,6 @@ export default function FichaMed() {
             try {
                 const resposta = await buscarTriagemPorId(triagemId);
                 const dados = resposta.data.triagem;
-
                 setTriagem(dados);
                 setAltura(dados.informacoes_medicas?.altura?.toString() ?? '');
                 setPeso(dados.informacoes_medicas?.peso?.toString() ?? '');
@@ -61,8 +57,7 @@ export default function FichaMed() {
                 setCarregando(false);
             }
         }
-
-        void carregarFicha();
+        void carregarTriagem();
     }, [navigate, triagemId]);
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -107,13 +102,16 @@ export default function FichaMed() {
             {carregando && <p>Carregando ficha...</p>}
             {mensagem && <p>{mensagem}</p>}
 
-
             {/* Card do Paciente */}
             <div className='fm-patient-card'>
+
                 <div className='patient-top'>
-                    <div className='patient-avatar'></div>
+
+                    <div className={`patient-avatar ${triagem?.cor_classificacao ?? ''}`}>
+                    </div>
                     <div className='patient-info'>
                         <h2 className='patient-name'>{triagem?.dados_paciente?.nome}</h2>
+                        
                         <div className='patient-badges'>
                             <span className='badge badge-cyan'>Idade: <strong>{triagem?.dados_paciente?.idade}</strong></span>
                             <span className='badge badge-blue'>Sexo: <strong>{triagem?.dados_paciente?.sexo}</strong></span>
@@ -125,9 +123,11 @@ export default function FichaMed() {
 
                 {/* Seção Sintomas */}
                 <div className='sintomas-wrapper'>
+
                     <div className='sintomas-box'>
                         {/* Principais Sintomas */}
                         <div className='sintomas-col'>
+
                             <div className='sintomas-title'>
                                 <i className="bi bi-clipboard-check icon-blue"></i>
                                 <h3>Principais Sintomas</h3>

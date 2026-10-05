@@ -236,11 +236,10 @@ export class InformacoesMedicas {
     default: null,
   })
   frequencia_respiratoria!: number | null;
-
-  /*
-   * Nome alinhado com o banco:
-   * exame_fisico_direcionado
-   */
+/**
+ * Resultado do exame físico direcionado realizado
+ * pelo profissional durante o atendimento.
+ */
   @Prop({
     type: String,
     default: null,
@@ -320,7 +319,7 @@ export const MensagemChatSchema =
   timestamps: true,
   collection: 'triagens',
 })
-export class Triagem {  //historico chat_bot tem que colocar ref
+export class Triagem {
   /*
    * ID do paciente cadastrado.
    */
@@ -376,20 +375,7 @@ atendimento_iniciado_em!: Date | null;
 })
 atendimento_concluido_em!: Date | null;
 
-  /**
-   * Referência ao histórico da conversa realizada
-   * durante a triagem.
-   *
-   * Atualmente o campo armazena apenas um ObjectId.
-   * O relacionamento com um schema específico de
-   * histórico poderá ser adicionado posteriormente.
-   */
-  @Prop({
-    type: MongooseSchema.Types.ObjectId,
-    default: null,
-  })
-  historico_chat_id!: Types.ObjectId | null;
-
+  
   /**
    * Histórico da conversa usado pelo BFF para enviar
    * o contexto completo à API da MarIA.

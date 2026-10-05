@@ -57,12 +57,7 @@ export class LoginDto {
   password!: string;
 }
 
-/*Por que o login não possui @MinLength(6)?
-
-Não é obrigatório validar o tamanho durante o login.
-
-A senha já foi validada no cadastro. No login, o backend precisa apenas comparar a senha recebida com o hash armazenado:
-
-bcrypt.compare(data.password, patient.senha);
-
-Mesmo assim, adicionar @MinLength(6) também seria válido. Apenas não é necessário para o funcionamento.* */
+/**
+ * No login, a senha precisa apenas ser informada.
+ * A validade é verificada por comparação com o hash.
+ */

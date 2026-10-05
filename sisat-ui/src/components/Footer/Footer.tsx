@@ -39,16 +39,22 @@ export default function Footer(){
         "/": "hall",
         "/cadastro":"hall",
         "/login":"hall",
-        "/loginMedico":"medico",
+        "/loginMedico":"hall",
+
+        "/inicioPaciente":"paciente",
+        "/verAnteriores":"paciente",
+
         "/inicioMedico":"medico",
-        "/painelMedico":"none",
-        "/verAnteriores":"none",
-        "/chatbot":"none",
+        "/painelAtendimento":"none",
+
+
     };
 
-    const tipoFooter = footerConfig[pathname];
+    const tipoFooter = pathname.startsWith('/chatbot/') || pathname.startsWith('/ficha-atendimento/')
+        ? 'none'
+        : footerConfig[pathname];
 
-    if(tipoFooter === "none") return null;
+    if(!tipoFooter || tipoFooter === "none") return null;
 
     let conteudoFooter;
 
@@ -65,29 +71,50 @@ export default function Footer(){
                         <h4 className='title'>Faça sua triagem</h4>
                         <p className='text'>Comece agora</p>
                         <button className='btn-cadastro'><Link to='/cadastro' className='btn-cadastro'>Clique Aqui</Link></button>
-                        <button className='btn-cadastro'><Link to='/inicioPaciente' className='btn-cadastro'>Início Paciente</Link></button>
-                        <button className='btn-cadastro'><Link to='/inicioMedico' className='btn-cadastro'>Início Médico</Link></button>
 
                     </div>
             </>
         );
     }
-    else if(tipoFooter === "medico"){
+
+    else if(tipoFooter === "paciente"){
         conteudoFooter = (
             <>
-                <div className='grid-two'>
-                    <h4 className='title'>Área Médica</h4>
-                    <p className='title'>Acesso exclusivo para profissionais.</p>
-                    <button className='btn-cadastro'><Link to='/fichaMed' className='btn-cadastro'>Ficha Médica</Link></button>
-                </div>
-                <div className='grid-three'>
-                    <h4 className='title'>Contato</h4>
-                    <p className='text'>triagem@sisat.com</p>
-                </div>
-            </>
-        );
-        
+                <div className='grid-two'> 
+                    <h4 className='title'>Paciente</h4> 
+                    <Link to='/inicioPaciente' className='button-link' > Início </Link> 
+                    <br/> 
+                    <Link to='/inicioPaciente' className='button-link' > Nova Triagem </Link> 
+                    <br/> 
+                    <Link to='/verAnteriores' className='button-link' > Triagens Anteriores </Link> 
+                </div> 
+                <div className='grid-three'> 
+                    <h4 className='title'>Sobre o SISAT</h4> 
+                    <button onClick={irParaComoFunciona} className='button-link' > Como Funciona </button> 
+                    <br/> <button onClick={irParaQuemSomos} className='button-link' > Quem Somos </button> 
+                </div> 
+            </> 
+        ); 
     }
+
+
+    else if(tipoFooter === "medico"){
+        conteudoFooter = ( 
+            <> 
+                <div className='grid-two'> 
+                    <h4 className='title'>Área Médica</h4> 
+                    <Link to='/inicioMedico' className='button-link' > Início </Link> 
+                    <br/> 
+                    <Link to='/painelAtendimento' className='button-link' > Painel de Atendimentos </Link> 
+                </div> 
+                
+                <div className='grid-three'> 
+                    <h4 className='title'>Sobre</h4>  
+                    <p className='text'> Área exclusiva para profissionais de saúde. </p> 
+                </div> </> 
+                ); 
+            }
+    
     
 
     return(

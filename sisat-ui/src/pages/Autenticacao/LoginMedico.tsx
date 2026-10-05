@@ -18,7 +18,6 @@ export default function LoginMedico(){
       event.preventDefault();
       setMensagem('');
       setCarregando(true);
-
       try {
         await loginMedico({ email, password });
         navigate('/inicioMedico');
@@ -80,7 +79,7 @@ export default function LoginMedico(){
             {carregando ? 'Entrando...' : 'Entrar'}
             </button>
         </form>
-        {mensagem && <p className='auth-message'>{mensagem}</p>}
+        {mensagem && <p className='auth-message' role='alert'>{mensagem}</p>}
         {/* Links de Rodapé */}
        <div className='login-footer'>
         <span>Não é profissional de saúde? <Link to='/login'>Entre como paciente</Link></span>

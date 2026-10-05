@@ -2,6 +2,14 @@ import axios from 'axios';
 
 export type UserRole = 'paciente' | 'medico';
 
+/**
+ * Instância central do Axios utilizada pelo frontend
+ * para se comunicar com o BFF.
+ *
+ * A URL pode ser configurada pela variável VITE_API_URL.
+ * Quando ela não é informada, o frontend utiliza
+ * o backend local na porta 3000.
+ */
 // Usa a URL do .env e mantém localhost como valor padrão.
 const api = axios.create({
   baseURL:
@@ -9,6 +17,14 @@ const api = axios.create({
     'http://localhost:3000',
 });
 
+
+/**
+ * Representa os dados básicos do usuário autenticado
+ * que são mantidos no navegador após o login.
+ *
+ * O CPF existe apenas para pacientes, enquanto
+ * médicos são identificados pelo e-mail institucional.
+ */
 export interface UsuarioSISAT {
   id: string;
   cpf?: string;
@@ -16,6 +32,13 @@ export interface UsuarioSISAT {
   role: UserRole;
 }
 
+/**
+ * Estruturas enviadas ao BFF nas operações
+ * de cadastro e autenticação.
+ *
+ * Esses tipos mantêm o frontend alinhado
+ * com os DTOs definidos no backend.
+ */
 export interface DadosCadastroPaciente {
   cpf: string;
   email: string;
@@ -41,6 +64,10 @@ export interface RespostaCadastroPaciente {
   };
 }
 
+/**
+ * Formato devolvido pelo backend após um login válido.
+ * Contém o token JWT e os dados básicos do usuário.
+ */
 export interface RespostaLogin {
   message: string;
   access_token: string;
@@ -49,6 +76,14 @@ export interface RespostaLogin {
 
 
 
+/**
+ * Persiste o token JWT e os dados do usuário
+ * no localStorage após uma autenticação válida.
+ *
+ * Nesta versão, o token é armazenado para manter
+ * a identificação do usuário entre as telas, mas ainda
+ * não é adicionado automaticamente às requisições.
+ */
 // Salva os dados retornados depois de um login válido.
 function salvarSessao(resposta: RespostaLogin) {
   localStorage.setItem(
@@ -62,6 +97,12 @@ function salvarSessao(resposta: RespostaLogin) {
   );
 }
 
+/**
+ * Envia os dados do novo paciente ao BFF.
+ *
+ * Rota utilizada:
+ * POST /auth/paciente/cadastro
+ */
 export function cadastrarPaciente(
   dados: DadosCadastroPaciente,
 ) {
@@ -71,6 +112,14 @@ export function cadastrarPaciente(
   );
 }
 
+/**
+ * Autentica o paciente por CPF e senha.
+ * Depois de uma resposta válida, mantém o token
+ * e os dados da conta no localStorage.
+ *
+ * Rota utilizada:
+ * POST /auth/paciente/login
+ */
 export async function loginPaciente(
   dados: DadosLoginPaciente,
 ) {
@@ -83,6 +132,13 @@ export async function loginPaciente(
   return resposta;
 }
 
+/**
+ * Autentica o médico por e-mail institucional e senha
+ * e armazena localmente os dados da sessão.
+ *
+ * Rota utilizada:
+ * POST /auth/medico/login
+ */
 export async function loginMedico(
   dados: DadosLoginMedico,
 ) {
@@ -95,10 +151,19 @@ export async function loginMedico(
   return resposta;
 }
 
+/**
+ * Recupera o token JWT salvo após o login.
+ * Retorna null quando não existe uma sessão armazenada.
+ */
 export function obterToken() {
   return localStorage.getItem('access_token');
 }
 
+/**
+ * Recupera e interpreta os dados do usuário armazenados
+ * no navegador. Caso o conteúdo esteja ausente ou seja
+ * um JSON inválido, retorna null.
+ */
 export function obterUsuario(): UsuarioSISAT | null {
   const usuarioSalvo = localStorage.getItem('sisat_user');
 
@@ -113,6 +178,14 @@ export function obterUsuario(): UsuarioSISAT | null {
   }
 }
 
+/**
+ * Converte diferentes formatos de erro do Axios
+ * em uma mensagem simples para exibição nas telas.
+ *
+ * O método trata listas de erros de validação,
+ * mensagens enviadas pelo backend, falhas de conexão
+ * e erros inesperados.
+ */
 export function obterMensagemErro(erro: unknown) {
   if (axios.isAxiosError(erro)) {
     const mensagem = erro.response?.data?.message;

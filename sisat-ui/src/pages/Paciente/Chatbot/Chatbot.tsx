@@ -2,6 +2,8 @@ import {useState} from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import './Chatbot.css';
 import MarIA from '../../../assets/img/MarIA.png';
+import ModalTriagemConcluida from '../../../components/ModalTriagemConcluida/ModalTriagemConcluida';
+
 import { obterMensagemErro } from '../../../services/api';
 import { enviarMensagemMaria } from '../../../services/triagensApi';
 
@@ -11,37 +13,51 @@ interface Mensagem {
     tipo: 'usuario' | 'bot';
 }
 
+
+
 export default function Chatbot() {
 
     const navigate = useNavigate(); //usados para o pop-up de confirmação de sair do chat
-    const { triagemId } = useParams();
 
+    const { triagemId } = useParams<{ triagemId: string }>();
+
+    //pop-up de confirmação de sair do chat
     const [mostrarConfirmacao, setMostrarConfirmacao] = useState(false); //usados para o pop-up de confirmação de sair do chat
+
+    //modal de triagem concluída
+    const [mostrarTriagemConcluida, setMostrarTriagemConcluida] = useState(false); 
+
+    //estado para impedir envios duplicados 
+    const [enviando, setEnviando] = useState(false);
+
+    //mensagem de erro da comunicação com a API
+    const [erro, setErro] = useState('');
 
     const [mensagens, setMensagens] = useState<Mensagem[]>([
         {
             id:1,
-            texto: 'Olá! Eu sou a MarIA, assistente virtual do SISAT. Como posso ajudá-lo hoje?',
+            texto: 'Olá! Eu sou a MarIA, assistente virtual do SISAT, e vou acompanhar você durante sua triagem. Para começarmos, vou precisar de algumas informações: nome completo, idade, sexo, queixa principal, sintomas, há quanto tempo eles começaram, intensidade dos sintomas e outras informações que possam ajudar na avaliação. Vou fazer as perguntas aos poucos, de forma simples. Podemos começar?',
             tipo: 'bot'
         }
     ]);
 
+
     const [texto, setTexto] = useState('');
-    const [carregando, setCarregando] = useState(false);
-    const [finalizada, setFinalizada] = useState(false);
-    const [erro, setErro] = useState('');
 
     async function enviarMensagem() {
-        const conteudo = texto.trim();
-        if (conteudo === '' || carregando || finalizada || !triagemId) {
+
+        if (texto.trim() === '' || enviando || mostrarTriagemConcluida || !triagemId) {
             return;
         }
+    
+
+        const mensagemEnviada = texto.trim();
 
         const novaMensagemUsuario: Mensagem = {
             id: Date.now(),
-            texto: conteudo,
+            texto: mensagemEnviada,
             tipo: 'usuario'
-        };
+        }
 
         setMensagens((mensagensAnteriores) => [
             ...mensagensAnteriores,
@@ -49,41 +65,56 @@ export default function Chatbot() {
         ]);
 
         setTexto('');
+
         setErro('');
-        setCarregando(true);
+        
+        setEnviando(true);
 
         try {
-            const resposta = await enviarMensagemMaria(triagemId, conteudo);
-            const novaMensagemBot: Mensagem = {
+
+            const resposta = await enviarMensagemMaria(triagemId, mensagemEnviada);
+
+            const novaMensagemMarIA: Mensagem = {
                 id: Date.now() + 1,
                 texto: resposta.data.mensagem,
-                tipo: 'bot',
+                tipo: 'bot'
             };
-            setMensagens((anteriores) => [...anteriores, novaMensagemBot]);
 
-            if (resposta.data.finalizada) {
-                setFinalizada(true);
+            setMensagens((mensagensAnteriores) => [
+                ...mensagensAnteriores,
+                novaMensagemMarIA,
+            ]);
+
+            /*
+            * A finalização da triagem depende somente do campo "finalizada" retornado pela API*/
+
+            if (resposta.data.finalizada === true) {
                 localStorage.removeItem('triagem_ativa_id');
+                setMostrarTriagemConcluida(true);
             }
-        } catch (falha) {
-            setErro(obterMensagemErro(falha));
+
+        } catch (erroApi) {
+
+            setMensagens((anteriores) => anteriores.filter((item) => item.id !== novaMensagemUsuario.id));
+            setTexto(mensagemEnviada);
+            setErro(obterMensagemErro(erroApi));
+
         } finally {
-            setCarregando(false);
+            setEnviando(false);
         }
     }
 
-    function abrirConfirmacao() { //abre o pop-up de confirmação de sair do chat
+    function abrirConfirmacao() {
         setMostrarConfirmacao(true);
     }
 
-    function fecharConfirmacao() { //fecha o pop-up de confirmação de sair do chat
+    function fecharConfirmacao() {
         setMostrarConfirmacao(false);
     }
 
-    function abandonarTriagem() { //abandona a triagem e navega para a página inicial
-        navigate('/inicioPaciente'); //navega para a página inicial
+    function abandonarTriagem() {
+        navigate('/inicioPaciente');
     }
-
 
     return (
         <main className='chatbot-container'>
@@ -97,6 +128,7 @@ export default function Chatbot() {
                         className="chatbot-back"
                         onClick={abrirConfirmacao}
                         aria-label="Voltar para a tela inicial"
+                        disabled={enviando || mostrarTriagemConcluida}
                     >
                         <i className="bi bi-caret-left-fill"></i>
                     </button>
@@ -110,12 +142,14 @@ export default function Chatbot() {
                         <h1>MarIA</h1>
                         <span> Assistente Virtual</span>
                     </div>
+
                 </header>
 
                 
 
                 {/* ÁREA DAS MENSAGENS */}
-                <section className="chatbot-messages">
+                <section className="chatbot-messages" aria-live="polite">
+
                     {mensagens.map((mensagem) => (
                         <div
                             key={mensagem.id}
@@ -127,17 +161,23 @@ export default function Chatbot() {
 
                             </div>
                     ))}
-                    {carregando && (
+
+                    {enviando && (
                         <div className="chatbot-message bot">
-                            <div className="message">A MarIA está analisando...</div>
+                            <div className="message">
+                                Maria está processando sua resposta...
+                            </div>
                         </div>
                     )}
-                    {erro && (
-                        <div className="chatbot-message bot">
-                            <div className="message">{erro}</div>
-                        </div>
-                    )}
+
                 </section>
+
+                {/* MENSAGEM DE ERRO */}
+                {erro && (
+                    <p className="chatbot-error" role="alert">
+                        {erro}
+                    </p>
+                )}
 
 
                 {/* INPUT */}
@@ -146,22 +186,33 @@ export default function Chatbot() {
                     enviarMensagem();
                 }}
                 >
-                    <input type="text" placeholder={finalizada ? 'Triagem finalizada' : 'Digite aqui...'} value={texto} onChange={(evento) => setTexto(evento.target.value)} disabled={carregando || finalizada} />
-                    <button type="submit" aria-label="Enviar mensagem" disabled={carregando || finalizada}>
+                    <input 
+                    type="text" 
+                    placeholder={enviando
+                        ? "Processando..." 
+                        : "Digite sua mensagem..."
+                    } 
+                    value={texto} 
+                    onChange={(evento) => setTexto(evento.target.value)} 
+                    disabled={enviando || mostrarTriagemConcluida} 
+                    />
+                    <button type="submit" aria-label="Enviar mensagem" disabled={enviando || mostrarTriagemConcluida}>
                         ➤
                     </button>
 
                 </form>
 
             </section>
-                {/* POP-UP DE CONFIRMAÇÃO */}
+
+
+                {/* POP-UP DE CONFIRMAÇÃO DE ABANDONO DA TRIAGEM */}
                 {mostrarConfirmacao && (
                     <div className="confirmacao-overlay">
 
                         <div className="confirmacao-modal">
 
                             <h2>Tem certeza que deseja abandonar a triagem?</h2>
-                            <p>Você poderá continuar esta triagem depois.</p>
+                            <p>Todo seu histórico será perdido.</p>
 
                             <div className="confirmacao-botoes">
                                 <button
@@ -186,6 +237,11 @@ export default function Chatbot() {
                         </div>
 
                     </div>
+                )}
+
+                {/* MODAL DE TRIAGEM CONCLUIDA */}
+                {mostrarTriagemConcluida && (
+                    <ModalTriagemConcluida />
                 )}
 
         </main>

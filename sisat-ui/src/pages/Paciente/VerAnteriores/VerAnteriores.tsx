@@ -9,19 +9,15 @@ export default function VerAnteriores(){
     const usuarioId = obterUsuario()?.id ?? null;
     const [triagens, setTriagens] = useState<ItemHistoricoTriagem[]>([]);
     const [carregando, setCarregando] = useState(Boolean(usuarioId));
-    const [erro, setErro] = useState(
-        usuarioId ? '' : 'Faça login para consultar suas triagens.',
-    );
+    const [erro, setErro] = useState(usuarioId ? '' : 'Faça login para consultar suas triagens.');
 
     useEffect(() => {
         if (!usuarioId) return;
-
         buscarTriagensDoPaciente(usuarioId)
             .then((resposta) => setTriagens(resposta.data.triagens))
             .catch((falha) => setErro(obterMensagemErro(falha)))
             .finally(() => setCarregando(false));
     }, [usuarioId]);
-
     return(
         <>
             <main className='verAnt-container'>
@@ -44,7 +40,7 @@ export default function VerAnteriores(){
                         <p>Status</p>
                     </div>
                     {carregando && <p>Carregando triagens...</p>}
-                    {erro && <p>{erro}</p>}
+                    {erro && <p role='alert'>{erro}</p>}
                     {!carregando && !erro && triagens.length === 0 && (
                         <p>Nenhuma triagem anterior encontrada.</p>
                     )}
