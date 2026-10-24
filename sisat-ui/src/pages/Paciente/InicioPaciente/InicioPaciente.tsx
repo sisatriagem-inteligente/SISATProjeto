@@ -12,6 +12,25 @@ export default function InicioPaciente(){
     const [iniciando, setIniciando] = useState(false);
     const [erro, setErro] = useState('');
 
+
+
+/*
+ * INTEGRAÇÃO CODEX — MODO DE DEMONSTRAÇÃO E CRIAÇÃO
+ *
+ * Esta função pode criar uma triagem real por meio do BFF.
+ *
+ * Conferir a condição VITE_SISAT_FRONTEND_DEMO já utilizada
+ * nas telas de autenticação e aplicar o comportamento de
+ * demonstração também a este fluxo.
+ *
+ * Quando o modo de demonstração estiver ativo, não chamar
+ * criarTriagem() nem apresentar uma operação simulada como
+ * se tivesse sido registrada no backend.
+ *
+ * No fluxo real, conferir a resposta da API antes de salvar
+ * o ID e navegar para o chatbot.
+ */   
+
     async function comecarTriagem() {
         const usuario = obterUsuario();
         if (!usuario || usuario.role !== 'paciente') {
@@ -19,6 +38,25 @@ export default function InicioPaciente(){
             return;
         }
 
+        /*
+        * INTEGRAÇÃO CODEX — TRIAGEM ATIVA E ESTADO DO BACKEND
+        *
+        * Este identificador local ajuda a navegar para uma triagem
+        * conhecida pelo navegador, mas não comprova sozinho o estado
+        * atual da triagem no backend.
+        *
+        * Conferir o comportamento de POST /triagens quando já existe
+        * uma triagem Aguardando para o paciente.
+        *
+        * Se não houver triagem_ativa_id local, não presumir que não
+        * existe uma triagem pendente no servidor.
+        *
+        * Tratar respostas de conflito de forma clara, sem afirmar
+        * que uma nova triagem foi criada.
+        *
+        * Não implementar uma rota de consulta ou retomada sem confirmar
+        * que ela existe no BFF integrado e que faz parte do escopo.
+        */
         const triagemAtiva = localStorage.getItem('triagem_ativa_id');
         if (triagemAtiva) {
             navigate(`/chatbot/${triagemAtiva}`);
@@ -40,7 +78,7 @@ export default function InicioPaciente(){
     }
 
     return(
-        <div className='ip-container'>
+        <div className='ip-container ip-container-paciente'>
             <div className='ip-content'>
                 <div className='ip-left'>
                     <h1 className='sr-only'>Bem vindo, paciente.</h1>

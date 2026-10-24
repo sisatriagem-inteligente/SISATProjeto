@@ -52,6 +52,7 @@ function PainelAtendimento() {
                     to="/inicioMedico"
                 >
                     <i className="bi bi-caret-left-fill" />
+                    <span className='voltar-header'> Voltar ao início</span>
                 </Link>
 
                 <p className="painel-atendimento-boas-vindas">

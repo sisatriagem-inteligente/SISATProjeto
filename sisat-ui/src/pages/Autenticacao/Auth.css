@@ -1,253 +1,457 @@
-/* Centralizando o cartão na tela inteira */
-.login-container {
-  display: flex;               /*ativa o modo flex box, transformando um elemento em um container flexível. Isso alinha automaticamente os filhos diretos (itens flex) em uma linha, facilitando o alinhamento, distribuição de espaço e criação de layouts responsivos sem usar floats ou posicionamentos complexos */
-  justify-content: center;     /*alinha itens no eixo principal (geralmente horizontal) de um conteiner flexbox ou grid, distribuindo o espaço extra. centraliza os itens. */ 
-  align-items: center;         /*centraliza os itens verticalmente. usada no container pai para controlar o alinhaemnto vertical geral.*/ 
-  min-height: 100vh;           /*coloca a altura minima de um elemento, garantindo que ele nunca seja menor que um valor especifico enquanto permite que ele aumente naturalmente caso o conteudo exceda essa altura */
-              /*↓→ nesse caso, 100vh é igual à altura exata do navegador do usuário no momento que ele acessa a aplicação */
 
-background: #B0FBFF;
-background: radial-gradient(
-  circle,
-  rgba(176, 251, 255, 1) 42%, 
-  rgba(112, 205, 255, 0.96) 92%
-  );
+/* ---- FUNDOS DAS TELAS DE AUTENTICAÇÃO ---- */
+
+/* Login e cadastro do paciente */
+.login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+
+  /* background: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 1) 0%, 
+    rgba(233, 224, 212, 1) 78%
+  ); */
+    background: radial-gradient(
+        circle,
+        rgba(185, 223, 253, 1) 0%, 
+        rgba(230, 243, 254, 1) 40%, 
+        rgba(233, 224, 212, 1) 75%
+    );
+
 }
 
+/* Login exclusivo dos profissionais de saúde */
 .login-container-medico {
-  display: flex;               
-  justify-content: center;     
-  align-items: center;         
-  min-height: 100vh;            
-  background: #E6FAFF;
-  background: radial-gradient(
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+
+    background: #5B3A2E;
+    /* background: radial-gradient(
     circle,
-    rgba(230, 250, 255, 1) 20%, 
-    rgba(184, 242, 255, 1) 60%, 
-    rgba(107, 228, 255, 0.96) 96%
+    rgba(91, 58, 46, 1) 0%, 
+    rgba(162, 129, 113, 1) 30%, 
+    rgba(233, 224, 212, 1) 45%
+    );  */
+    background: radial-gradient(circle,
+        rgba(191, 168, 156, 1) 30%, 
+        rgba(227, 217, 212, 1) 60%, 
+        rgba(233, 224, 212, 1) 80%
     );
 }
 
+/* ---- CARTÃO PRINCIPAL ---- */
 
-/*o "cartão" branco principal */
 .login-card {
-  background-color: #ffffff;
-  padding: 40px;                                   /* cria um espaçamento interno entre o conteúdo de um elemento e sua borda. afasta o conteúdo das extremidades da caixa, aumentando a area interna sem alterar o tamanho do elemento externo, a menos que o box-sizing esteja configurado como content-box */ 
-  border-radius: 12px;                             /* arredonda os cantos de elementos */ 
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);   
-  width: 100%;
-  max-width: 400px;                                /* define a largura maxima de um elemento, impedindo que ele ultrapasse um determinado tamanho de telas grandes, enquanto permanece responsivo em telas menores. evita que textos fiquem muito longos e imagens se deformem */ 
-  transform: scale(1.1);                           /*transforma o tamanho para 1.1 (1.0 sendo 100%) e dá um "zoom" */
+    background-color: #FFFFFF;
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.10);
+
+    width: 100%;
+    max-width: 400px;
 }
 
-/* --- Cabeçalho ---*/
-.login-header{
-  text-align: center;
-  margin-bottom: 24px;
+/* ---- CABEÇALHO ---- */
+
+.login-header {
+    text-align: center;
+    margin-bottom: 24px;
 }
 
-/* --- Nossa logo ---  */
-.logo-image{
-  width: 86px;            /* ajustando o tamanho da logo */
-  height: 86px;
-  object-fit: contain;    /* garante que a logo nao vai ficar esticada ou achatada*/ 
-  margin: 0 auto 16px;
-  display: block;         /* ajuda a centralizar com a margem automática (auto)*/
+.logo-image {
+    width: 86px;
+    height: 86px;
+    object-fit: contain;
+    margin: 0 auto 16px;
+    display: block;
 }
 
-.login-header h2{
-  font-size: 24px;
-   color: #21AFDE;      
-  margin-bottom: 8px;
+/* Título do login e cadastro do paciente */
+.login-container .login-header h2 {
+    font-size: 24px;
+    color: #11223B;
+    margin-bottom: 8px;
 }
 
-.login-header p{
-  color: #6b7280;
-  font-size: 14px;
+/* Título com destaque terracota no login médico */
+.login-container-medico .login-header h2 {
+    font-size: 24px;
+    color: #5B3A2E;
+    margin-bottom: 8px;
 }
 
-/* --- Formulário e Inputs --- */
+.login-header p {
+    color: #312C2B;
+    font-size: 14px;
+}
+
+/* ---- FORMULÁRIO E CAMPOS ---- */
+
 .login-form {
-  display: flex;
-  flex-direction: column;           /* define a direção (linha ou coluna) e a ordem (normal ou invertida) dos itens dentro de um conteiner flexbox */
-  gap: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
 }
 
 .input-group {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
 }
 
-.input-group label{
-  font-size: 14px;
-  font-weight: 500;
-  color: #25BFD9;
-}
-
-.input-group input{
-  padding: 10px 12px;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  font-size: 14px;
-  outline: none; 
-  transition: border-color 1s;
-}
-
-/* ---- VER SENHA --- */
-
-/* DIV que funciona como âncora → seguira o input e o olhinho*/
-.password-wrapper{
-  position: relative;                 /* garante que itens absolutos dentro dele não possam sair das bordas*/
-  display: flex;
-  width: 100%; 
-}
-
-/* Parte que deixa um espacinho extra na direita pro input da senha pro texto não ficar por baixo do ícone */
-.password-wrapper input{
-  width: 100%;
-  padding-right: 40px;                /* empurra O TEXTO um pouco pra esquerda */ 
-}
-
-/* Parte do olhinho em si (o ícone) */
-.password-wrapper i{
-  position: absolute;                 /*tira o ícone do fluxo normal, permitindo que ele fique posicionado livremente */ 
-  right: 12px;                        /* gruda o ícone no lado direito da div âncora */
-  top: 50%;                           /* desce o ícone até a metade*/
-  transform: translateY(-50%);        /* aplica uma transformação 2D ou 3D em um elemento. permite rotacionar, dimensionar, mover, distorcer etc. esse translateY define uma translação usando o valor do eixo Y (de pé) */
-  cursor: pointer;
-  color: #21AFDE;
-  font-size: 16px;
-}
-
-/* hover do olhinho */ 
-.password-wrapper i:hover{
-  color: #71DAEA;
-}
-
-/* ---- FIM DO VER SENHA --- */
-
-/* --- Borda colorida ao clicar nos inputs --- */
-.input-group input:focus{
-  border-color: #5fd0ec;
-}
-
-/* --- Botão de cadastro principal ---*/
-.submit-btn{
-  width: 100%;
-  padding: 12px;
-   background-color: #81daf5; /* */
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  margin-top: 8px;
-  transition: background-color 0.2s;
-}
-
-.submit-btn:hover{
-  background-color: #4db9da; 
-}
-
-/* --- Rodapé --- */
-.login-footer{
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 24px;
-  font-size: 12px;
-  color: #6b7280;
-}
-
-.login-footer a{
-  color: #374151;
-  text-decoration: none;
-  font-weight: 600;
-}
-
-.login-footer a:hover{
-  text-decoration: underline;
-  color: #5f6572;
-}
-
-
-
-
-
-/* ----- parte para dispositivos móveis (ativa quando a tela é menor que 768px) ------- */
-
-@media(max-width: 768px){ /* 768px abrange tanto os celulares quanto os tablets*/
-  
-  .login-container {
-    display: flex;               
-    justify-content: center;     
-    align-items: center;         
-    min-height: 100vh;           
-    background: linear-gradient(90deg,rgba(112, 205, 255, 1) 0%, rgba(176, 251, 255, 1) 54%, rgba(112, 205, 255, 1) 100%);
-  }
-
-  /*o "cartão" branco principal */
-  .login-card {
-    background-color: #ffffff;
-    padding: 20px;                                   
-    border-radius: 12px;                             
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);  
-    height:fit-content;
-    max-width: 90%;                                  /*coloquei pra ocupar 90% da largura da tela para nao ficar muito grudada na ponta e nao perder espaço ficando fina demais. ela é reponsiva e muda conforme a largura.*/
-    transform: scale(1.01);                          /* tira um pouco do zoom, deixando o espaço um pouco menor*/
-  }
-
-  /* --- Cabeçalho ---*/
-  .login-header{
-    text-align: center;
-    margin-bottom: 20px;
-  }
-
-  /* --- Nossa logo ---  */
-  .logo-image{
-    width: 68px;            
-    height: 70px;
-    object-fit: contain;    /* garante que a logo nao vai ficar esticada ou achatada*/ 
-    margin: 0 auto 16px;
-    display: block;         /* ajuda a centralizar com a margem automática (auto)*/
-  }
-
-  .login-header h2{
-    font-size: 20px;
-    color: #21AFDE;      
-    margin-bottom: 8px;
-  }
-
-  .login-header p{
-    color: #6b7280;
+/* Rótulos do paciente */
+.login-container .input-group label {
     font-size: 14px;
-    font-weight: 420;
-  }
+    font-weight: 600;
+    color: #11223B;
+}
+
+/* Rótulos médicos */
+.login-container-medico .input-group label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #5B3A2E;
+}
+
+.input-group input {
+    padding: 10px 12px;
+    border: 1px solid #D1D5DB;
+    border-radius: 8px;
+    font-size: 14px;
+    outline: none;
+
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+/* Destaque dos campos ao selecionar */
+
+.login-container .input-group input:focus {
+    border-color: #1C3B60;
+    box-shadow: 0 0 0 2px rgba(28, 59, 96, 0.12);
+}
+
+.login-container-medico .input-group input:focus {
+    border-color: #5B3A2E;
+    box-shadow: 0 0 0 2px rgba(91, 58, 46, 0.12);
+}
+
+/* ---- MOSTRAR E ESCONDER SENHA ---- */
+
+.password-wrapper {
+    position: relative;
+    display: flex;
+    width: 100%;
+}
+
+.password-wrapper input {
+    width: 100%;
+    padding-right: 40px;
+}
+
+.password-wrapper i {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+
+    cursor: pointer;
+    color: #1C3B60;
+    font-size: 16px;
+}
+
+.password-wrapper i:hover {
+    color: #5B3A2E;
+}
+
+/* Ícone de senha do login médico */
+.login-container-medico .password-wrapper i {
+    color: #5B3A2E;
+}
+
+.login-container-medico .password-wrapper i:hover {
+    color: #312C2B;
+}
+
+/* Botões acessíveis para mostrar e ocultar senhas */
+.password-wrapper .password-toggle {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: #1C3B60;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.password-wrapper .password-toggle:hover {
+    color: #5B3A2E;
+}
+
+.password-wrapper .password-toggle:focus-visible {
+    outline: 2px solid #5B3A2E;
+    outline-offset: 3px;
+    border-radius: 3px;
+}
 
 
-  /* --- Formulário e Inputs, VER SENHA, borda ao redor do input e botao de cadastro principal estão de acordo então não vou colocar aqui --- */
-  
-  /* --- Rodapé --- */
-  .login-footer{
+
+
+/* ---- BOTÃO PRINCIPAL ---- */
+
+/* Cadastro e login do paciente */
+.login-container .submit-btn {
+    width: 100%;
+    padding: 12px;
+
+    background-color: #11223B;
+    color: #E9E0D4;
+
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 8px;
+
+    transition:
+        background-color 0.2s ease,
+        transform 0.2s ease;
+}
+
+.login-container .submit-btn:hover {
+    background-color: #1C3B60;
+}
+
+/* Botão do login médico */
+.login-container-medico .submit-btn {
+    width: 100%;
+    padding: 12px;
+
+    background-color: #5B3A2E;
+    color: #E9E0D4;
+
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 8px;
+
+    transition:
+        background-color 0.2s ease,
+        transform 0.2s ease;
+}
+
+.login-container-medico .submit-btn:hover {
+    background-color: #312C2B;
+}
+
+/* ---- FOCO DE TECLADO ---- */
+
+.login-card button:focus-visible,
+.login-card a:focus-visible,
+.password-wrapper i:focus-visible {
+    outline: 3px solid #5B3A2E;
+    outline-offset: 3px;
+}
+
+.input-group input:focus-visible {
+    outline: none;
+}
+
+/* ---- RODAPÉ DO CARTÃO ---- */
+
+.login-footer {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-top: 24px;
-    font-size: 13px;
-    color: #6b7280;
-  }
+    font-size: 12px;
+    color: #312C2B;
+}
 
-  .login-footer a{
-    color: #374151;
+.login-footer a {
+    color: #11223B;
     text-decoration: none;
     font-weight: 600;
-  }
+}
 
-  .login-footer a:hover{
+.login-footer a:hover {
     text-decoration: underline;
-    color: #5f6572;
-  }
+    color: #1C3B60;
+}
 
+/* Links do login médico */
+.login-container-medico .login-footer a {
+    color: #5B3A2E;
+}
+
+.login-container-medico .login-footer a:hover {
+    color: #312C2B;
+}
+
+/* ---- AJUSTES EXCLUSIVOS DO CADASTRO DO PACIENTE ---- */
+
+.cadastro-container {
+    height: auto;
+    min-height: 100vh;
+    align-items: flex-start;
+    padding: 80px 30px 0;
+    box-sizing: border-box;
+}
+
+
+/* ---- AJUSTES EXCLUSIVOS DO LOGIN DO PACIENTE ---- */
+
+.login-container.login-paciente-container {
+    height: auto;
+    min-height: 100vh;
+
+    /* Mantém o cartão abaixo da Navbar fixa */
+    align-items: flex-start;
+    padding: 90px 30px 40px;
+
+    box-sizing: border-box;
+}
+
+
+
+
+/* ---- LINKS ADICIONAIS DA TELA DE LOGIN ---- */
+
+/* ---- LINKS ADICIONAIS DA TELA DE LOGIN ---- */
+
+.login-container .login-extra-links {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+
+    width: 100%;
+    margin-top: 12px;
+
+    color: #312C2B;
+    font-size: 12px;
+    line-height: 1.5;
+    text-align: center;
+}
+
+.login-container .login-extra-links > a:first-child {
+    text-align: center;
+}
+
+.login-container .login-extra-links p {
+    width: 100%;
+    max-width: 310px;
+    margin: 0;
+    text-align: center;
+}
+
+.login-container .login-extra-links a {
+    color: #11223B;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.login-container .login-extra-links a:hover {
+    color: #1C3B60;
+    text-decoration: underline;
+}
+
+.login-container .login-extra-links a:focus-visible {
+    outline: 2px solid #5B3A2E;
+    outline-offset: 3px;
+    border-radius: 2px;
+}
+
+
+/* Rodapé exclusivo do login do paciente */
+.login-container.login-paciente-container .login-footer {
+    justify-content: center;
+    margin-top: 20px;
+}
+
+/* Espaçamento do login em dispositivos menores */
+@media (max-width: 768px) {
+    .login-container.login-paciente-container {
+        align-items: flex-start;
+        padding: 96px 16px 32px;
+    }
+
+    .login-container.login-paciente-container .login-footer {
+        justify-content: center;
+    }
+}
+
+
+
+/* ---- DISPOSITIVOS MÓVEIS ---- */
+
+@media (max-width: 768px) {
+
+    .login-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+    }
+
+    .login-card {
+        background-color: #FFFFFF;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.10);
+
+        height: fit-content;
+        max-width: 90%;
+        transform: scale(1.01);
+    }
+
+    .login-header {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    .logo-image {
+        width: 68px;
+        height: 70px;
+        object-fit: contain;
+        margin: 0 auto 16px;
+        display: block;
+    }
+
+    .login-container .login-header h2,
+    .login-container-medico .login-header h2 {
+        font-size: 20px;
+        margin-bottom: 8px;
+    }
+
+    .login-header p {
+        color: #312C2B;
+        font-size: 14px;
+        font-weight: 400;
+    }
+
+    .login-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 24px;
+        font-size: 13px;
+        color: #312C2B;
+    }
 }

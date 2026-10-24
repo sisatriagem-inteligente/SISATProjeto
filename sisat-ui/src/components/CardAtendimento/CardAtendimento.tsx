@@ -1,3 +1,4 @@
+
 import './CardAtendimento.css';
 
 interface CardAtendimentoProps {
@@ -22,10 +23,11 @@ function CardAtendimento({
 }: CardAtendimentoProps) {
 
     return (
-        <div className="card-atendimento">
+        <div className={`card-atendimento ${prioridade}`}>
 
             <div
                 className={`card-prioridade ${prioridade}`}
+                aria-hidden="true"
             ></div>
 
             <div className="card-atendimento-conteudo">
@@ -59,6 +61,7 @@ function CardAtendimento({
             </div>
 
             <button
+                type="button"
                 className="btn-ver-completo"
                 onClick={onVerCompleto}
             >

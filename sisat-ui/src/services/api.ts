@@ -50,6 +50,92 @@ export interface DadosLoginPaciente {
   password: string;
 }
 
+export interface PerguntaRecuperacao {
+  id: 1 | 2 | 3;
+  text: string;
+}
+
+export interface RespostaPerguntasRecuperacao {
+  questions: PerguntaRecuperacao[];
+}
+
+export interface DadosConfigurarRecuperacao {
+  cpf: string;
+  currentPassword: string;
+  recoveryWord1: string;
+  recoveryWord2: string;
+  recoveryWord3: string;
+}
+
+export interface RespostaConfigurarRecuperacao {
+  message: string;
+}
+
+export interface DadosConcluirCadastroPaciente {
+  setupToken: string;
+  recoveryWord1: string;
+  recoveryWord2: string;
+  recoveryWord3: string;
+}
+
+export interface RespostaConcluirCadastroPaciente {
+  message: string;
+}
+
+
+/*
+ * INTEGRAÇÃO CODEX — RECUPERAÇÃO DE SENHA
+ *
+ * O fluxo novo deverá utilizar duas operações separadas:
+ *
+ * 1. Validar uma resposta:
+ *    - Enviar CPF e a resposta informada.
+ *    - Receber o resultado da validação e a autorização temporária,
+ *      conforme o contrato final do BFF.
+ *
+ * 2. Redefinir a senha:
+ *    - Enviar a autorização temporária e a nova senha.
+ *    - Receber a confirmação da redefinição.
+ *
+ * NA INTEGRAÇÃO:
+ * - Conferir os DTOs, as rotas e as respostas no BFF atualizado.
+ * - Criar interfaces TypeScript específicas para cada operação.
+ * - Implementar as duas funções neste arquivo.
+ * - Não considerar a validação visual do frontend como autorização.
+ * - Não armazenar a autorização temporária no localStorage.
+ *
+ * Os nomes finais dos campos e dos endpoints devem seguir
+ * o código efetivamente integrado ao BFF, sem presumir que
+ * propostas anteriores sejam os contratos definitivos.
+ */
+
+// LEGADO — NÃO UTILIZAR NO NOVO FLUXO DE RECUPERAÇÃO.
+//
+// Estas interfaces representam o contrato anterior, de uma única
+// operação com CPF, três respostas e nova senha.
+//
+// INTEGRAÇÃO CODEX:
+// 1. Procurar referências a DadosRecuperacaoSenha e
+//    RespostaRecuperacaoSenha em todo o frontend.
+// 2. Confirmar se ainda existem consumidores do contrato antigo.
+// 3. Remover estas interfaces se não houver mais uso ou substituí-las
+//    pelas interfaces correspondentes às novas operações do BFF.
+//
+// Não conectar RecuperarSenha.tsx a este contrato antigo.
+
+export interface DadosRecuperacaoSenha {
+  cpf: string;
+  recoveryWord1: string;
+  recoveryWord2: string;
+  recoveryWord3: string;
+  newPassword: string;
+}
+
+export interface RespostaRecuperacaoSenha {
+  message: string;
+}
+
+
 export interface DadosLoginMedico {
   email: string;
   password: string;
@@ -62,6 +148,7 @@ export interface RespostaCadastroPaciente {
     cpf: string;
     email: string;
   };
+  setup_token: string;
 }
 
 /**
@@ -98,6 +185,22 @@ function salvarSessao(resposta: RespostaLogin) {
 }
 
 /**
+ * Encerra a sessão local do usuário.
+ *
+ * Remove os dados de autenticação e a referência
+ * local da triagem ativa, sem apagar registros do banco.
+ *
+ * Esta função não revoga o JWT no backend.
+ */
+export function encerrarSessao(): void {
+  localStorage.removeItem('access_token');
+  localStorage.removeItem('sisat_user');
+  localStorage.removeItem('triagem_ativa_id');
+}
+
+
+
+/**
  * Envia os dados do novo paciente ao BFF.
  *
  * Rota utilizada:
@@ -108,6 +211,72 @@ export function cadastrarPaciente(
 ) {
   return api.post<RespostaCadastroPaciente>(
     '/auth/paciente/cadastro',
+    dados,
+  );
+}
+
+/**
+ * Busca as três perguntas fixas de recuperação.
+ *
+ * Rota utilizada:
+ * GET /auth/paciente/perguntas-recuperacao
+ *
+ * INTEGRAÇÃO CODEX:
+ * - Preservar a rota e conferir o contrato no BFF atualizado.
+ * - Confirmar que a resposta contém questions, com id e text.
+ * - Atualizar as telas PalavrasChave.tsx e RecuperarSenha.tsx
+ *   para usarem as perguntas retornadas pela API no fluxo real.
+ * - Manter a constante de perguntas de demonstração apenas
+ *   para o modo de demonstração, removendo seu uso como fonte
+ *   de perguntas no fluxo real.
+ *
+ * A constante PERGUNTAS_RECUPERACAO_DEMO está nos componentes
+ * apenas para desenvolvimento visual e deverá deixar de ser
+ * a fonte das perguntas após a integração real.
+ */
+export function obterPerguntasRecuperacao() {
+  return api.get<RespostaPerguntasRecuperacao>(
+    '/auth/paciente/perguntas-recuperacao',
+  );
+}
+
+/**
+ * Configura as três respostas e conclui
+ * o cadastro do paciente.
+ *
+ * Rota utilizada:
+ * POST /auth/paciente/concluir-cadastro
+ */
+export function concluirCadastroPaciente(
+  dados: DadosConcluirCadastroPaciente,
+) {
+  return api.post<RespostaConcluirCadastroPaciente>(
+    '/auth/paciente/concluir-cadastro',
+    dados,
+  );
+}
+
+/**
+ * Configura ou substitui as respostas de recuperação
+ * mediante confirmação da senha atual.
+ *
+ * Rota utilizada:
+ * POST /auth/paciente/configurar-recuperacao
+ *
+ * CONFIGURAÇÃO TARDIA — PRESERVAR NA INTEGRAÇÃO.
+ *
+ * Utilizada quando a conta já foi criada, mas as respostas
+ * não foram configuradas durante o cadastro.
+ *
+ * O paciente informa CPF, senha atual e as três respostas.
+ * Não exige setup_token e não deve ser confundida com
+ * a recuperação de uma senha esquecida.
+ */
+export function configurarRecuperacaoPaciente(
+  dados: DadosConfigurarRecuperacao,
+) {
+  return api.post<RespostaConfigurarRecuperacao>(
+    '/auth/paciente/configurar-recuperacao',
     dados,
   );
 }

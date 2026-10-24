@@ -1,262 +1,296 @@
-/*essa classe é a do h1. ela nao vai aparecer em nada, só vai servir para o navegador se localizar.*/
-.sr-only{                   
+
+/* ↓ Essa classe é a do h1. Ela não vai aparecer visualmente,
+   só serve para o navegador e leitores de tela. */
+.sr-only {
     position: absolute;
     width: 1px;
     height: 1px;
     padding: 0;
     margin: -1px;
     overflow: hidden;
-    clip: rect(0,0,0,0);  
-    white-space: nowrap;  
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
     border: 0;
 }
 
-.home-container{
-    background: #E8FEFF;
+.home-container {
+    /* background-color: #E9E0D4; */
     background: linear-gradient(
-        90deg,
-        rgba(232, 254, 255, 1) 25%, 
-        rgba(145, 211, 255, 1) 75%
-        );
-    min-height: calc(100vh - 80px);  /*dessa maneira ocupa a tela inteira e nao interfere na Navbar (que tem tamanho de 80px)*/
+        93deg,
+        rgba(174, 204, 235, 1) 18%, 
+        rgba(247, 239, 228, 1) 82%
+    );
+
+    min-height: calc(100vh - 80px);
+
     display: flex;
     justify-content: center;
     align-items: center;
+
+    box-sizing: border-box;
     margin: 0 auto;
 }
 
-.home-content{
+.home-content {
     width: 100%;
     max-width: 2000px;
-    display:grid;
+
+    display: grid;
     grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr auto;
+
     align-items: center;
-    gap: 40px;
-    padding: 0 80px;
+
+    gap: 25px clamp(20px, 3vw, 40px);
+
+    padding: clamp(30px, 4vw, 60px) clamp(30px, 5vw, 80px);
+    box-sizing: border-box;
 }
 
-/* itens da esquerda */
+/* ---- ITENS DA ESQUERDA ---- */
 
-.home-left{
+.home-left {
+    grid-column: 1;
+    grid-row: 1;
+
     display: flex;
     flex-direction: column;
     justify-content: center;
-    justify-self: end;
     align-items: flex-start;
+
+    justify-self: end;
+
     width: 100%;
-    padding-left: 0px;
+    max-width: 650px;
+
+    padding-left: 0;
+
     gap: 20px;
-    transform: translateX(100px);
+    transform: translateX(clamp(30px, 5vw, 100px));
 }
 
-.logo-escrito{
-    width: 100%;
+.logo-escrito {
+    width: 90%;
     max-width: 600px;
-    margin-bottom: 0px;
+
+    margin-bottom: 0;
+    margin-top: 0;
 }
 
-/*parte do slogan*/
-.home-subtitle{
-    font-size: 58px;
+/* ---- PARTE DO SLOGAN ---- */
+
+.home-subtitle {
+    font-size: 55px;
     line-height: 1.1;
-    color: #494949;
+    color: #312C2B;
     margin-top: -10px;
 }
 
-.subtitle-normal{
+.subtitle-normal {
     font-weight: 400;
 }
 
-.subtitle-bold{
+.subtitle-bold {
     font-weight: bold;
 }
-/*fim do slogan*/
 
-.home-seguranca{
+/* ---- TEXTO DE SEGURANÇA ---- */
+
+.home-seguranca {
     font-size: 18px;
-    color: #7a7a7a;
+    color: #312C2B;
     font-weight: 500;
     margin-bottom: 15px;
 }
 
-.home-seguranca i{
+.home-seguranca i {
     margin-right: 5px;
+    color: #5B3A2E;
 }
 
-/* botao de comece a triagem */
-.comeceTriagem{
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    cursor: pointer;
-    padding: 10px 20px ;
-    border-radius: 15px;
-    background: #52d7ff;
-    background: linear-gradient(
-        140deg,
-        rgba(82, 215, 255, 1) 30%, 
-        rgba(18, 140, 255, 1) 87%
-        );
-    width: 330px;
-    border: none;
-    transform:scale(1.25);
-    box-shadow: 0px 4px 4px rgba(190, 190, 190, 0.25);
-    transition: 
-        transform 0.3s linear, 
-        box-shadow 0.3s ease;
-}
+/* ---- BOTÃO DE COMEÇAR A TRIAGEM ---- */
 
-.comeceTriagem:hover{
-    transform: scale(1.3);
-    box-shadow: 0px 8px 18px rgba(0,0,0,0.18);
-
-}
-
-.link-comece{
-    text-decoration: none;
-    color: #ffffff;
-    font-size:25px;
-    font-weight: 600;
-    display: block;
-    width: 100%;        /*esse display block, width e height 100% fazer o botao ter sua area inteira clicavel, nao so o texto*/
-    height: 100%;
-}
-
-/* botao de ja tenho conta */
-.jaTenhoConta{
+.comeceTriagem {
     display: flex;
     justify-content: center;
     align-items: center;
     cursor: pointer;
     padding: 10px 20px;
     border-radius: 15px;
-    background-color: #ffffff;
+
+    background-color: #11223B;
+
     width: 330px;
     border: none;
+
     transform: scale(1.25);
-    transition: 
-        transform 0.3s linear, 
-        box-shadow 0.3s ease;
+
+    box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.12);
+
+    transition:
+        transform 0.3s linear,
+        box-shadow 0.3s ease,
+        background-color 0.3s ease;
 }
 
-.jaTenhoConta:hover{
+.comeceTriagem:hover {
     transform: scale(1.3);
-    box-shadow: 0px 8px 18px rgba(0,0,0,0.18);  
+    background-color: #1C3B60;
+    box-shadow: 0px 8px 18px rgba(0, 0, 0, 0.18);
 }
 
-.link-jaTenho{
+.link-comece {
     text-decoration: none;
-    color: #494949;
-    font-size:25px;
+    color: #E9E0D4;
+    font-size: 25px;
     font-weight: 600;
-    display: block;     /*↓*/
-    width: 100%;        /*faz com que toda a área do botão seja clicável, e não apenas o texto do Link*/
-    height: 100%;       /*↑*/
+    display: block;
+    width: 100%;
+    height: 100%;
 }
 
+/* ---- BOTÃO DE JÁ TENHO CONTA ---- */
 
-/* itens da direita */
+.jaTenhoConta {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    padding: 10px 20px;
+    border-radius: 15px;
 
-.home-right{
-    display:flex;
+    background-color: #FFFFFF;
+    width: 330px;
+    border: none;
+
+    /* Contorno escuro para destacar o botão sobre o fundo creme,
+       sem alterar suas dimensões. */
+    box-shadow: inset 0 0 0 2px #11223B;
+
+    transform: scale(1.25);
+
+    transition:
+        transform 0.3s linear,
+        box-shadow 0.3s ease,
+        background-color 0.3s ease;
+}
+
+.jaTenhoConta:hover {
+    transform: scale(1.3);
+    background-color: #5B3A2E;
+
+    box-shadow:
+        inset 0 0 0 2px #5B3A2E,
+        0px 8px 18px rgba(0, 0, 0, 0.18);
+}
+
+.link-jaTenho {
+    text-decoration: none;
+    color: #11223B;
+    font-size: 25px;
+    font-weight: 600;
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+/* Texto claro quando o botão secundário está em hover */
+.jaTenhoConta:hover .link-jaTenho {
+    color: #E9E0D4;
+}
+
+/* ---- ITENS DA DIREITA ---- */
+
+.home-right {
+    display: flex;
     justify-content: center;
     align-items: center;
     padding-left: 20px;
-    padding-top: 100px; 
+    padding-top: 100px;
 }
 
-.celular-image{
+.celular-image {
     width: 95%;
     max-width: 750px;
 }
 
+/* ---- FOCO DE TECLADO ---- */
 
-/* ------- como funciona intro -------*/
-.comoFunciona{
-    color: #2EABFF;
-    font-size: 18px;
-    text-shadow: 2px 2px 6px #8d8d8d;
-    display: flex;
-    padding-left: 80px;
-    padding-bottom: 20px;
+.comeceTriagem:focus-visible,
+.jaTenhoConta:focus-visible {
+    outline: 3px solid #5B3A2E;
+    outline-offset: 4px;
 }
 
-
-
-
-
-
 /* --------------- PARTE PARA MOBILE --------------- */
-@media (max-width: 1020px){ /*coloquei maior do que os outros para não ter problema com o celular*/
-    .home-content{
-        grid-template-columns: 100%;
-        padding: 80px 20px;
 
+@media (max-width: 1020px) {
+    .home-content {
+        grid-template-columns: 100%;
+        grid-template-rows: auto auto auto;
+        padding: 80px 20px;
     }
 
-/* ---- itens da esquerda ------*/
-    .home-left{
+    /* ---- ITENS DA ESQUERDA ---- */
+
+    .home-left {
         transform: none;
         align-items: center;
         text-align: center;
         gap: 16px;
+        grid-column: 1;
+        grid-row: 1;
     }
-    .logo-escrito{ /*→ SISAT*/
+
+    .logo-escrito {
         width: 300px;
     }
 
-    .home-subtitle{ /*→ slogan*/
+    .home-subtitle {
         font-size: 32px;
     }
-    .home-seguranca{
+
+    .home-seguranca {
         font-size: 16px;
     }
 
-    /*botão de começar a triagem*/
-    .comeceTriagem{
+    /* Botão de começar a triagem */
+    .comeceTriagem {
         width: 250px;
         height: auto;
     }
-    .link-comece{
-        font-size:18px;
+
+    .link-comece {
+        font-size: 18px;
         font-weight: 600;
     }
 
-    /* botao de ja tenho conta */
-    .jaTenhoConta{
+    /* Botão de já tenho conta */
+    .jaTenhoConta {
         width: 250px;
     }
 
-    .link-jaTenho{
-        font-size:18px;
+    .link-jaTenho {
+        font-size: 18px;
         font-weight: 600;
     }
 
+    /* ---- ITENS DA DIREITA ---- */
 
-/* ---- itens da direita ------*/
-
-    .home-right{
+    .home-right {
         align-items: center;
         text-align: center;
         justify-content: center;
         transform: none;
         padding-left: 0;
         padding-top: 0;
+        grid-column: 1;
+        grid-row: 2;
     }
 
-    .celular-image{
+    .celular-image {
         padding-top: 20px;
         width: 75%;
         max-width: 320px;
-    }
-
-
-    /* ------- como funciona intro -------*/
-    .comoFunciona{
-        font-size: 15px;
-        text-shadow: 2px 2px 6px #8d8d8d;
-        display: flex;
-        padding-left: 0;
-        padding-bottom: 20px;
     }
 }

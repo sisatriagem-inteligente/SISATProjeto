@@ -1,3 +1,6 @@
+
+/* ---- CARTÃO DE ATENDIMENTO ---- */
+
 .card-atendimento {
     width: 100%;
     min-height: 90px;
@@ -5,82 +8,82 @@
     display: flex;
     align-items: center;
 
-    background: #e4f8fc;
+    /* Fundo e borda padrão */
+    background-color: #FFFFFF;
+    border: 2px solid #E9E0D4;
 
-    border-radius: 25px;
+    border-radius: 22px;
 
     padding: 8px 15px 8px 10px;
 
     box-sizing: border-box;
 
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 4px 10px rgba(17, 34, 59, 0.08);
 
     gap: 12px;
+
+    transition:
+        background-color 0.2s ease,
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
 }
 
+/* ---- PRIORIDADE: VERMELHO ---- */
 
-/* QUADRADO DA PRIORIDADE */
+.card-atendimento.vermelho {
+    background-color: #FFF3F2;
+    border-color: #B42318;
+}
+
+/* ---- PRIORIDADE: AMARELO ---- */
+
+.card-atendimento.amarelo {
+    background-color: #FFFAE8;
+    border-color: #dbb81d;
+}
+
+/* ---- PRIORIDADE: VERDE ---- */
+
+.card-atendimento.verde {
+    background-color: #F1F8F1;
+    border-color: #2E7D32;
+}
+
+/* ---- FAIXA LATERAL DA PRIORIDADE ---- */
 
 .card-prioridade {
-    width: 74px;
-    height: 70px;
+    width: 8px;
+    height: 58px;
 
     flex-shrink: 0;
 
-    border-radius: 18px;
+    border-radius: 8px;
 }
 
-
-/* Cores do Manchester */
+/* Faixa vermelha */
 
 .card-prioridade.vermelho {
-    background: linear-gradient(
-        135deg,
-        #ff6666,
-        #ffb3b3
-    );
+    background-color: #B42318;
 }
 
-.card-prioridade.laranja {
-    background: linear-gradient(
-        135deg,
-        #f6b33f,
-        #ffe0aa
-    );
-}
+/* Faixa amarela */
 
 .card-prioridade.amarelo {
-    background: linear-gradient(
-        135deg,
-        #ffe537,
-        #fff6a8
-    );
+    background-color: #ffd724;
 }
+
+/* Faixa verde */
 
 .card-prioridade.verde {
-    background: linear-gradient(
-        135deg,
-        #9cf06b,
-        #d8ffc9
-    );
+    background-color: #2E7D32;
 }
 
-.card-prioridade.azul {
-    background: linear-gradient(
-        135deg,
-        #72c9f5,
-        #cdeefe
-    );
-}
-
-
-/* CONTEÚDO */
+/* ---- CONTEÚDO ---- */
 
 .card-atendimento-conteudo {
     flex: 1;
     min-width: 0;
 }
-
 
 .card-atendimento-linha-principal {
     display: flex;
@@ -89,18 +92,16 @@
     gap: 20px;
 }
 
-
 .card-atendimento-linha-principal h2 {
     margin: 0;
 
     font-size: 23px;
     font-weight: 700;
 
-    color: #494949;
+    color: #11223B;
 
-    white-space: nowrap;
+    overflow-wrap: anywhere;
 }
-
 
 .card-atendimento-dados {
     display: flex;
@@ -110,26 +111,28 @@
 
     font-size: 15px;
 
-    color: #494949;
-}
+    color: #312C2B;
 
+    flex-wrap: wrap;
+}
 
 .card-atendimento-dados strong,
 .card-sintomas strong {
-    color: #209de4;
+    color: #1C3B60;
 }
-
 
 .card-sintomas {
     margin: 12px 0 0;
 
     font-size: 15px;
+    line-height: 1.4;
 
-    color: #494949;
+    color: #312C2B;
+
+    overflow-wrap: anywhere;
 }
 
-
-/* BOTÃO */
+/* ---- BOTÃO VER COMPLETO ---- */
 
 .btn-ver-completo {
     width: 150px;
@@ -138,11 +141,11 @@
     text-decoration: none;
 
     border: none;
-    border-radius: 20px;
+    border-radius: 16px;
 
-    background: #2faef1;
+    background-color: #11223B;
 
-    color: white;
+    color: #FFFFFF;
 
     font-size: 18px;
     font-weight: 700;
@@ -160,18 +163,99 @@
 
     transition:
         transform 0.2s ease,
-        background 0.2s ease;
+        background-color 0.2s ease;
 }
 
-
 .btn-ver-completo:hover {
-    background: #209de4;
+    background-color: #1C3B60;
 
     transform: scale(1.03);
 }
 
-
 .btn-ver-completo .seta {
     font-size: 25px;
     line-height: 20px;
+}
+
+/* ---- FOCO DE TECLADO ---- */
+
+.btn-ver-completo:focus-visible {
+    outline: 3px solid #5B3A2E;
+    outline-offset: 3px;
+}
+
+/* ---- AJUSTES PARA TELAS MENORES ---- */
+
+@media (max-width: 900px) {
+
+    .card-atendimento-linha-principal {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .card-atendimento-dados {
+        gap: 8px 14px;
+    }
+
+    .btn-ver-completo {
+        width: 125px;
+        font-size: 16px;
+    }
+}
+
+@media (max-width: 600px) {
+
+    .card-atendimento {
+        align-items: stretch;
+        flex-wrap: wrap;
+
+        padding: 12px;
+
+        gap: 12px;
+        border-radius: 18px;
+    }
+
+    .card-prioridade {
+        width: 6px;
+        height: auto;
+        align-self: stretch;
+    }
+
+    .card-atendimento-conteudo {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .card-atendimento-linha-principal h2 {
+        font-size: 20px;
+        white-space: normal;
+    }
+
+    .card-atendimento-dados {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+
+        font-size: 14px;
+    }
+
+    .card-sintomas {
+        font-size: 14px;
+    }
+
+    .btn-ver-completo {
+        width: 100%;
+        min-height: 48px;
+
+        flex-direction: row;
+        gap: 10px;
+
+        border-radius: 12px;
+    }
+
+    .btn-ver-completo .seta {
+        font-size: 20px;
+        line-height: 1;
+    }
 }

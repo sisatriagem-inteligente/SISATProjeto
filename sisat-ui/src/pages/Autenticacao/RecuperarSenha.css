@@ -1,0 +1,198 @@
+/* ---- TELA DE RECUPERAÇÃO DE SENHA ---- */
+
+.recuperar-senha-container {
+    box-sizing: border-box;
+    height: auto;
+    min-height: 100vh;
+    align-items: flex-start;
+    padding: 90px 24px 40px;
+}
+
+.login-container .login-card.recuperar-senha-card {
+    width: 100%;
+    max-width: 520px;
+}
+
+/* ---- FORMULÁRIO ---- */
+
+.recuperar-senha-form {
+    gap: 16px;
+}
+
+.recuperar-senha-subtitulo {
+    margin: 0 0 10px;
+    color: #11223B;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.5;
+}
+
+.recuperar-senha-perguntas {
+    padding: 14px 16px;
+    border-radius: 8px;
+    background-color: #F7F4EF;
+    border: 1px solid #E9E0D4;
+}
+
+.recuperar-senha-perguntas ol {
+    margin: 0;
+    padding-left: 22px;
+    color: #312C2B;
+    font-size: 13px;
+    line-height: 1.55;
+}
+
+.recuperar-senha-perguntas li + li {
+    margin-top: 9px;
+}
+
+.recuperar-senha-perguntas li {
+    padding-left: 3px;
+}
+
+/* ---- AVISO DE DESENVOLVIMENTO ---- */
+
+.recuperar-senha-aviso {
+    margin-bottom: 20px;
+    padding: 10px 12px;
+    border: 1px dashed #5B3A2E;
+    border-radius: 8px;
+    background-color: #E9E0D4;
+    color: #312C2B;
+    font-size: 12px;
+    line-height: 1.5;
+    text-align: center;
+}
+
+/* ---- CAMPOS BLOQUEADOS ---- */
+
+.recuperar-senha-campos {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 16px;
+    border-radius: 10px;
+    transition:
+        opacity 0.2s ease,
+        background-color 0.2s ease;
+}
+
+.recuperar-senha-campos.is-locked {
+    opacity: 0.55;
+    background-color: #F3F4F6;
+    border: 1px solid #D1D5DB;
+}
+
+.recuperar-senha-campos.is-unlocked {
+    opacity: 1;
+    background-color: #FFFFFF;
+    border: 1px solid #E9E0D4;
+}
+
+.recuperar-senha-campos input:disabled {
+    background-color: #E5E7EB;
+    cursor: not-allowed;
+}
+
+.recuperar-senha-bloqueio {
+    margin: 0;
+    color: #312C2B;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+/* ---- BOTÕES DE MOSTRAR SENHA ---- */
+
+.recuperar-senha-container .password-wrapper {
+    position: relative;
+}
+
+.recuperar-senha-container .recuperar-senha-toggle {
+    position: absolute;
+    top: 50%;
+    right: 8px;
+    transform: translateY(-50%);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 6px;
+    border: none;
+    border-radius: 4px;
+    background: transparent;
+    color: #1C3B60;
+    cursor: pointer;
+}
+
+.recuperar-senha-container .recuperar-senha-toggle:hover {
+    color: #5B3A2E;
+}
+
+.recuperar-senha-container .recuperar-senha-toggle:disabled {
+    cursor: not-allowed;
+}
+
+.recuperar-senha-container .password-wrapper input {
+    padding-right: 44px;
+}
+
+/* ---- MENSAGENS ---- */
+
+.recuperar-senha-mensagem {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.recuperar-senha-mensagem.erro {
+    color: #9B2C2C;
+}
+
+.recuperar-senha-mensagem.info {
+    color: #1C3B60;
+}
+
+.recuperar-senha-mensagem.sucesso {
+    color: #276749;
+}
+
+/* ---- RETORNO AO LOGIN ---- */
+
+.recuperar-senha-voltar {
+    margin-top: 4px;
+    text-align: center;
+    font-size: 12px;
+}
+
+.recuperar-senha-voltar a {
+    color: #11223B;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.recuperar-senha-voltar a:hover {
+    color: #1C3B60;
+    text-decoration: underline;
+}
+
+.recuperar-senha-container .recuperar-senha-toggle:focus-visible {
+    outline: 2px solid #5B3A2E;
+    outline-offset: 2px;
+}
+
+/* ---- DISPOSITIVOS MÓVEIS ---- */
+
+@media (max-width: 768px) {
+    .recuperar-senha-container {
+        padding: 96px 16px 32px;
+    }
+
+    .login-container .login-card.recuperar-senha-card {
+        max-width: 100%;
+    }
+
+    .recuperar-senha-campos {
+        padding: 12px;
+    }
+}

@@ -1,130 +1,129 @@
-.comoFun-content{
-    min-height: calc(100vh - 80px); /*espaço da tela do usuário - tamanho da navbar*/
+
+.comoFun-content {
+    min-height: calc(100vh - 80px);
     display: flex;
     flex-direction: column;
     text-align: center;
     align-items: center;
     justify-content: center;
 
-    background: #E8FEFF;
+    /* background-color: #E9E0D4; */
+
     background: linear-gradient(
-        90deg,
-        rgba(232, 254, 255, 1) 25%, 
-        rgba(145, 211, 255, 1) 75%
-        );
+        93deg,
+        rgba(174, 204, 235, 1) 18%, 
+        rgba(247, 239, 228, 1) 82%
+    );
 }
 
-.comoFun-header{
+.comoFun-header {
     width: 100%;
     max-width: 680px;
 }
 
-.comoFun-subtitle{
+.comoFun-subtitle {
     font-size: 30px;
     line-height: 1.1;
-    color: #494949;
+    color: #312C2B;
     padding-bottom: 10px;
 }
 
-.subtitle-normal{
+.subtitle-normal {
     font-weight: 400;
 }
 
-.subtitle-bold{
+.subtitle-bold {
     font-weight: bold;
 }
 
+/* ---------- ÁREA DOS CARDS ---------- */
 
-/*---------- área dos CARDS ----------*/
-.card-container{
-    display: grid;          /*sem isso o grid template nao funciona.*/ 
-    grid-template-columns:repeat(5,auto);  
+.card-container {
+    display: grid;
+    grid-template-columns: repeat(5, auto);
     align-items: center;
     justify-content: center;
-    gap: 25px; 
+    gap: 25px;
     padding: 25px;
 }
 
-.card-title{
-    color: #6cc4ff;
+.card-title {
+    color: #11223B;
     font-size: 25px;
 }
-.conteudo{
+
+.conteudo {
     gap: 0;
     padding: 0;
     font-size: 20px;
     padding-top: 10px;
     padding-bottom: 13px;
+    color: #312C2B;
 }
 
-.cards{
+.cards {
     width: 300px;
-    background: white;
+    background-color: #FFFFFF;
     border-radius: 20px;
     padding: 20px;
+
     display: flex;
     flex-direction: column;
     align-items: center;
-    box-shadow: 0 4px 4px rgba(190,190,190,.25);
 
+    box-shadow: 0 4px 8px rgba(17, 34, 59, 0.10);
 }
 
-.card-images{
+.card-images {
     width: 220px;
-    padding: 10px 5px 0px 5px;
+    padding: 10px 5px 0;
 }
 
-/*setinhas ligando os cards:*/
-.arrow{
+/* Setas que conectam os cards */
+.arrow {
     font-size: 55px;
-    color:#179FE8;
-    justify-self:end;
+    color: #5B3A2E;
+    justify-self: end;
 }
-
-
 
 /* --------------- PARTE PARA MOBILE --------------- */
-@media (max-width: 1020px){
-    .comoFun-content{
+@media (max-width: 1020px) {
+    .comoFun-content {
         justify-content: flex-start;
     }
 
-    .comoFun-header{
+    .comoFun-header {
         max-width: 480px;
         width: 80%;
     }
 
-    .comoFun-subtitle{
+    .comoFun-subtitle {
         font-size: 22px;
-
     }
 
-    /*---------- área dos CARDS ----------*/
-    .card-container{
-        display: grid;          /*sem isso o grid template nao funciona.*/ 
-        grid-template-columns: 1fr;  
+    /* ---------- ÁREA DOS CARDS ---------- */
+    .card-container {
+        display: grid;
+        grid-template-columns: 1fr;
         align-items: center;
         justify-items: center;
-        gap: 15px; 
+        gap: 15px;
     }
 
-    .cards{
+    .cards {
         width: 90%;
         max-width: 300px;
         font-size: 16px;
     }
 
-    .card-images{
+    .card-images {
         max-width: 220px;
         width: 70%;
     }
 
-    .arrow{
+    .arrow {
         transform: rotate(90deg);
         text-align: center;
         justify-self: center;
     }
-
-} 
-
-
+}

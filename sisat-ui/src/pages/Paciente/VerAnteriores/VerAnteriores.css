@@ -1,136 +1,204 @@
-.verAnt-container{
-    color: #494949;
-    background: #f2feff;
-    background: linear-gradient(
-        90deg,
-        rgba(242, 254, 255, 1) 60%, 
-        rgba(196, 233, 255, 1) 98%
-        );
+
+/* ---- TELA DE TRIAGENS ANTERIORES ---- */
+
+.verAnt-container {
+    color: #312C2B;
+
+    /* background: radial-gradient(
+        circle,
+        rgba(255, 255, 255, 1) 0%,
+        rgba(233, 224, 212, 1) 78%
+    ); */
+
+    background: radial-gradient(
+        circle,
+        #FFFFFF 0%,
+        #E9E0D4 58%,
+        rgba(174, 204, 235, 1) 100%
+    );
+
     padding: 20px 50px 50px 50px;
     min-height: 100vh;
-
+    box-sizing: border-box;
 }
 
-.verAnt-header{
+/* ---- CABEÇALHO DA PÁGINA ---- */
+
+.verAnt-header {
     display: grid;
     grid-template-columns: 1fr 1fr;
+
     padding-bottom: 20px;
     padding-top: 70px;
     margin-bottom: 20px;
+
     align-items: start;
     font-size: 22px;
 }
 
-.header-left{
+.header-left {
     display: flex;
     flex-direction: column;
     gap: 10px;
-
 }
 
+/* Título e texto introdutório */
 
- /* --- parte de voltar para o início ---*/
+.verAnt-header p {
+    color: #312C2B;
+}
 
-.btn-voltar{
+.verAnt-header h1 {
+    color: #11223B;
+}
+
+/* ---- BOTÃO DE VOLTAR AO INÍCIO ---- */
+
+.btn-voltar {
     display: inline-flex;
     align-items: center;
     gap: 8px;
+
     text-decoration: none;
     font-size: 20px;
     font-weight: 500;
-    color: #41B0EC;
-    text-decoration: none;
-    transition: all 0.25s ease;
+
+    color: #11223B;
+
+    transition:
+        color 0.25s ease,
+        transform 0.25s ease;
 }
-.btn-voltar i{
+
+.btn-voltar i {
     font-size: 28px;
 }
 
-.btn-voltar:hover{
-    color: #1382BE;
+.btn-voltar:hover {
+    color: #1C3B60;
     transform: translateX(-5px);
 }
 
-/* ----- parte triagens anteriores -----*/
-.historico{
+/* ---- DESTAQUE DA PALAVRA HISTÓRICO ---- */
+
+.historico {
     font-weight: 700;
-    color: #41B0EC;
+    color: #5B3A2E;
 }
 
-.lista-triagens{
-    background-color: rgb(255, 255, 255);
+/* ---- ÁREA DA LISTA DE TRIAGENS ---- */
+
+.lista-triagens {
+    background-color: #FFFFFF;
+
+    border: 1px solid rgba(17, 34, 59, 0.08);
     border-radius: 20px;
-    box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+
+    box-shadow: 0 6px 18px rgba(17, 34, 59, 0.10);
+
     padding-bottom: 18px;
 }
 
-.verAnt-card{
+/* ---- CABEÇALHO DAS COLUNAS ---- */
+
+.verAnt-container .verAnt-card {
     display: grid;
-    grid-template-columns: 250px minmax(0,1fr) 220px;
+    grid-template-columns: 250px minmax(0, 1fr) 220px;
     align-items: center;
+
     margin: 0 15px;
-    padding: 0 25px 15px 25px;
-    color: #8f8f8f;
+    padding: 15px 25px;
+
+    background-color: #F7F5F1;
+    border-bottom: 1px solid #E9E0D4;
+    border-radius: 12px;
+
+    color: #11223B;
     font-size: 15px;
-    font-weight: 500;
-    padding-bottom: 15px;
+    font-weight: 600;
 }
 
-.verAnt-card p{
+.verAnt-container .verAnt-card p {
     margin: 0;
 }
 
-/*  Data  */
-.verAnt-card p:nth-child(1){
-    text-align:left;
+/* Data */
+
+.verAnt-container .verAnt-card p:nth-child(1) {
+    text-align: left;
     padding-left: 58px;
 }
 
 /* Sintomas */
-.verAnt-card p:nth-child(2){
+
+.verAnt-container .verAnt-card p:nth-child(2) {
     text-align: center;
 }
 
 /* Status */
-.verAnt-card p:nth-child(3){
+
+.verAnt-container .verAnt-card p:nth-child(3) {
     text-align: center;
 }
 
-/*----------- PARTE PARA MOBILE -----------*/
+/* ---- MENSAGENS DE CARREGAMENTO, ERRO E LISTA VAZIA ---- */
 
-@media(max-width: 865px){
-    .verAnt-container{
+.lista-triagens > p {
+    margin: 0;
+    padding: 18px 25px;
+
+    color: #312C2B;
+    font-size: 15px;
+    line-height: 1.5;
+}
+
+.lista-triagens > p[role="alert"] {
+    color: #5B3A2E;
+}
+
+/* ---- PARTE PARA MOBILE ---- */
+
+@media (max-width: 865px) {
+
+    .verAnt-container {
         padding: 70px 10px 40px;
         min-height: 100vh;
         overflow-x: hidden;
     }
 
-    .verAnt-header{
+    .verAnt-header {
         display: block;
+
         padding: 20px 0 10px;
         margin-bottom: 15px;
+
         font-size: 18px;
     }
 
-    .verAnt-header h1{
+    .verAnt-header h1 {
         font-size: 30px;
     }
 
-    .btn-voltar{
+    .btn-voltar {
         font-size: 18px;
     }
-    .btn-voltar i{
+
+    .btn-voltar i {
         font-size: 22px;
     }
 
-    .lista-triagens{
+    .lista-triagens {
         width: 100%;
         box-sizing: border-box;
+
         padding: 15px 0;
+
         border-radius: 18px;
     }
 
-    .verAnt-card{
+    /* No celular, os cartões individuais continuam
+       responsáveis por apresentar suas próprias informações. */
+    .verAnt-container .verAnt-card {
         display: none;
     }
 }

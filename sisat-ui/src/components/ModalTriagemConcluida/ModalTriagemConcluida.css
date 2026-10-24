@@ -1,3 +1,6 @@
+
+/* ---- FUNDO QUE COBRE A TELA ---- */
+
 .modal-overlay {
     position: fixed;
     inset: 0;
@@ -8,10 +11,12 @@
 
     padding: 20px;
 
-    background: rgba(0, 0, 0, 0.45);
+    background: rgba(17, 34, 59, 0.45);
 
     z-index: 1000;
 }
+
+/* ---- CARTÃO PRINCIPAL ---- */
 
 .modal-triagem-concluida {
     width: min(540px, 100%);
@@ -24,11 +29,14 @@
 
     text-align: center;
 
-    background: #ffffff;
+    background: #FFFFFF;
+    border: 1px solid #E9E0D4;
     border-radius: 22px;
 
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.22);
+    box-shadow: 0 12px 40px rgba(17, 34, 59, 0.18);
 }
+
+/* ---- ÍCONE DE CONFIRMAÇÃO ---- */
 
 .icone-confirmacao {
     width: 68px;
@@ -42,32 +50,38 @@
 
     border-radius: 50%;
 
-    background: #e2f6f2;
-    color: #1f7a8c;
+    background: #EDF6FC;
+    color: #1C3B60;
 
     font-size: 38px;
     font-weight: 700;
 }
 
+/* ---- TÍTULO ---- */
+
 .modal-triagem-concluida h2 {
     margin: 0 0 18px;
 
-    color: #1f5f68;
+    color: #11223B;
 
     font-size: 32px;
     font-weight: 700;
 }
+
+/* ---- TEXTOS ---- */
 
 .modal-triagem-concluida p {
     max-width: 420px;
 
     margin: 0;
 
-    color: #494949;
+    color: #312C2B;
 
     font-size: 18px;
     line-height: 1.6;
 }
+
+/* Informação complementar sobre a triagem */
 
 .modal-observacao {
     margin-top: 10px !important;
@@ -75,8 +89,10 @@
     font-size: 16px !important;
     line-height: 1.5 !important;
 
-    color: #666666 !important;
+    color: #5B3A2E !important;
 }
+
+/* ---- BOTÕES ---- */
 
 .modal-triagem-botoes {
     width: 100%;
@@ -112,34 +128,42 @@
     transform: translateY(-2px);
 }
 
+/* Foco visível para navegação pelo teclado */
+
 .modal-triagem-botoes button:focus-visible {
-    outline: 3px solid #8ecae6;
+    outline: 3px solid #5B3A2E;
     outline-offset: 3px;
 }
+
+/* Ação principal: consultar o histórico */
 
 .btn-historico {
     border: none;
 
-    background: #1f7a8c;
-    color: #ffffff;
+    background: #11223B;
+    color: #FFFFFF;
 
-    box-shadow: 0 4px 10px rgba(31, 122, 140, 0.2);
+    box-shadow: 0 4px 10px rgba(17, 34, 59, 0.15);
 }
 
 .btn-historico:hover {
-    background: #196b7b;
+    background: #1C3B60;
 }
 
-.btn-inicio {
-    border: 2px solid #1f7a8c;
+/* Ação secundária: voltar ao início */
 
-    background: #e8f7fa;
-    color: #1f5f68;
+.btn-inicio {
+    border: 2px solid #11223B;
+
+    background: #E9E0D4;
+    color: #11223B;
 }
 
 .btn-inicio:hover {
-    background: #d8f0f4;
+    background: #FFFFFF;
 }
+
+/* ---- RESPONSIVIDADE PARA CELULARES ---- */
 
 @media (max-width: 600px) {
     .modal-overlay {

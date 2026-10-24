@@ -60,7 +60,7 @@ export default function Home() {
                     <div className='home-right'>
                         <img src={celHall} alt='Imagem de um celular com a tela do SISAT' className='celular-image'/>
                     </div>
-                <p className='comoFunciona'><i className="bi bi-arrow-down-circle"></i> Como Funciona</p>
+                {/* <p className='comoFunciona'><i className="bi bi-arrow-down-circle"></i> Como Funciona</p> */}
                 </div>
                 
             </section>

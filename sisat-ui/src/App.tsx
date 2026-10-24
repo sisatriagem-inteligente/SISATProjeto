@@ -13,6 +13,8 @@ import Chatbot from './pages/Paciente/Chatbot/Chatbot';
 import InicioMedico from './pages/Medico/InicioMedico/InicioMedico';
 import FichaMed from './pages/Medico/FichaMed/FichaMedica';
 import PainelAtendimento from './pages/Medico/PainelAtend/PainelAtendimento';
+import PalavraChave from "./pages/Autenticacao/PalavrasChave/PalavrasChave";
+import RecuperarSenha from './pages/Autenticacao/RecuperarSenha';
 
 
 
@@ -37,6 +39,21 @@ function App(){
           <Route path="/inicioMedico" element={<InicioMedico />} />
           <Route path="/ficha-atendimento/:triagemId" element={<FichaMed />} />
           <Route path="/painelAtendimento" element={<PainelAtendimento />} />
+          
+          <Route
+            path="/palavras-chave"
+            element={<PalavraChave modo="cadastro" />}
+          />
+
+          <Route
+            path="/configurar-palavras-chave"
+            element={<PalavraChave modo="configuracao" />}
+          />
+
+          <Route
+            path="/recuperar-senha"
+            element={<RecuperarSenha />}
+          />
           
         </Routes>
 

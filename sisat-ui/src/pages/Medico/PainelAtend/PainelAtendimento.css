@@ -1,69 +1,106 @@
+
+/* ---- TELA DO PAINEL DE ATENDIMENTOS ---- */
+
 .painel-atendimento-container {
     min-height: 100vh;
 
     box-sizing: border-box;
 
-    padding: 30px 35px 50px;
+    padding: 80px 35px 50px;
 
-    color: #494949;
+    color: #312C2B;
 
-    background: #f2feff;
+    /* background: radial-gradient(
+        circle,
+        #FFFFFF 0%,
+        #E9E0D4 58%,
+        rgba(162, 129, 113, 0.35) 100%
+    ); */
 
-    background: linear-gradient(
-        90deg,
-        rgba(242, 254, 255, 1) 60%,
-        rgba(196, 233, 255, 1) 98%
+    background: radial-gradient(
+        circle,
+        rgba(255, 252, 252, 1) 0%, 
+        rgba(236, 226, 223, 1) 19%, 
+        rgba(227, 217, 212, 1) 76%, 
+        rgba(191, 168, 156, 1) 100%
     );
 }
 
-
-/* CABEÇALHO */
+/* ---- CABEÇALHO ---- */
 
 .painel-atendimento-header {
     margin-left: 15px;
-
     margin-bottom: 10px;
 }
 
+/* ---- BOTÃO DE VOLTAR AO INÍCIO ---- */
+/*
+   Este botão também é usado na tela VerAnteriores.
+   Mantemos as mesmas cores para preservar a identidade visual
+   nas duas páginas, sem alterar o estilo compartilhado globalmente.
+*/
+
+.painel-atendimento-container .btn-voltar {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+
+    text-decoration: none;
+    font-size: 20px;
+    font-weight: 500;
+
+    color: #11223B;
+
+    transition:
+        color 0.25s ease,
+        transform 0.25s ease;
+}
+
+.painel-atendimento-container .btn-voltar i {
+    font-size: 28px;
+}
+
+.painel-atendimento-container .btn-voltar:hover {
+    color: #1C3B60;
+    transform: translateX(-5px);
+}
+
+/* ---- TEXTO DE BOAS-VINDAS ---- */
 
 .painel-atendimento-boas-vindas {
     margin: 0;
 
     font-size: 20px;
+    color: #312C2B;
 }
-
 
 .painel-atendimento-boas-vindas strong {
-    color: #209de4;
+    color: #5B3A2E;
 }
 
+/* ---- TÍTULO PRINCIPAL ---- */
 
 .painel-atendimento-header h1 {
     margin: 3px 0 10px;
 
     font-size: 42px;
-
     line-height: 1.1;
 
     font-weight: 700;
 
-    color: #494949;
+    color: #11223B;
 }
 
-
-/* LISTA */
+/* ---- LISTA DE ATENDIMENTOS ---- */
 
 .lista-atendimentos {
     width: 100%;
-
     max-width: 1050px;
 
     margin: 0 auto;
 
     display: flex;
-
     flex-direction: column;
-
     gap: 12px;
 
     max-height: calc(100vh - 150px);
@@ -71,23 +108,76 @@
     overflow-y: auto;
 
     padding: 0 5px 10px;
+
+    box-sizing: border-box;
 }
 
+/* ---- MENSAGENS DE CARREGAMENTO, ERRO E LISTA VAZIA ---- */
 
-/* BARRA DE ROLAGEM */
+.lista-atendimentos > p {
+    margin: 0;
+    padding: 18px 20px;
+
+    color: #312C2B;
+    font-size: 15px;
+    line-height: 1.5;
+}
+
+.lista-atendimentos > p[role="alert"] {
+    color: #5B3A2E;
+}
+
+/* ---- BARRA DE ROLAGEM ---- */
 
 .lista-atendimentos::-webkit-scrollbar {
     width: 8px;
 }
 
-
 .lista-atendimentos::-webkit-scrollbar-track {
     background: transparent;
 }
 
-
 .lista-atendimentos::-webkit-scrollbar-thumb {
-    background: #bdbdbd;
-
+    background: #A28171;
     border-radius: 10px;
+}
+
+.lista-atendimentos::-webkit-scrollbar-thumb:hover {
+    background: #5B3A2E;
+}
+
+/* ---- RESPONSIVIDADE ---- */
+
+@media (max-width: 865px) {
+
+    .painel-atendimento-container {
+        padding: 80px 15px 35px;
+        overflow-x: hidden;
+    }
+
+    .painel-atendimento-header {
+        margin-left: 5px;
+        margin-bottom: 18px;
+    }
+
+    .painel-atendimento-container .btn-voltar {
+        font-size: 18px;
+    }
+
+    .painel-atendimento-container .btn-voltar i {
+        font-size: 22px;
+    }
+
+    .painel-atendimento-boas-vindas {
+        font-size: 18px;
+    }
+
+    .painel-atendimento-header h1 {
+        font-size: 30px;
+    }
+
+    .lista-atendimentos {
+        max-height: none;
+        padding: 0 0 10px;
+    }
 }

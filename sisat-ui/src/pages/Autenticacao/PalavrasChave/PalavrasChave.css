@@ -1,0 +1,102 @@
+/* ---- TELA DE PALAVRAS-CHAVE ---- */
+
+.palavras-chave-container {
+    box-sizing: border-box;
+    padding: 40px 20px;
+    
+}
+
+/* Cartão um pouco mais largo para acomodar as perguntas */
+.login-container .login-card.palavras-chave-card {
+    width: 100%;
+    max-width: 520px;
+    margin-top: 60px;
+}
+
+/* ---- FORMULÁRIO ---- */
+
+.palavras-chave-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.palavras-chave-instrucoes {
+    margin: 0;
+    color: #312C2B;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+/* ---- MENSAGENS ---- */
+
+.palavras-chave-container .auth-message {
+    margin: 0;
+    color: #9B2C2C;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+/* ---- LINKS ALTERNATIVOS ---- */
+
+.palavras-chave-alternativa {
+    margin-top: 8px;
+    text-align: center;
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+.palavras-chave-alternativa a,
+.palavras-chave-fallback a {
+    color: #11223B;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.palavras-chave-alternativa a:hover,
+.palavras-chave-fallback a:hover {
+    color: #1C3B60;
+    text-decoration: underline;
+}
+
+.palavras-chave-fallback {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.palavras-chave-fallback .login-footer {
+    justify-content: center;
+}
+
+/* ---- ESTADOS DOS BOTÕES ---- */
+
+.palavras-chave-container .submit-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+
+/* TEMPORÁRIO — aviso visível durante os testes do frontend. */
+.palavras-chave-demo-aviso {
+    margin: 0 0 20px;
+    padding: 10px 12px;
+    border: 1px dashed #5B3A2E;
+    border-radius: 8px;
+    background-color: #E9E0D4;
+    color: #312C2B;
+    font-size: 12px;
+    line-height: 1.5;
+    text-align: center;
+}
+
+
+@media (max-width: 768px) {
+    .palavras-chave-container {
+        padding: 32px 16px;
+    }
+
+    .login-container .login-card.palavras-chave-card {
+        max-width: 90%;
+    }
+}

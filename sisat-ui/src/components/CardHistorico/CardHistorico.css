@@ -1,83 +1,136 @@
-.cardHistorico{
+
+/* ---- CARTÃO DO HISTÓRICO ---- */
+
+.cardHistorico {
     display: grid;
-    grid-template-columns: 250px  minmax(0,1fr) 220px; 
+    grid-template-columns: 250px minmax(0, 1fr) 220px;
 
     align-items: center;
 
     padding: 18px 25px;
-
     margin: 15px;
 
-    background-color: white;
+    background-color: #FFFFFF;
+    border: 1px solid rgba(17, 34, 59, 0.08);
+    border-radius: 20px;
 
-    border-radius: 22px;
+    box-shadow: 0 4px 12px rgba(17, 34, 59, 0.08);
 
-    box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+    transition:
+        box-shadow 0.2s ease,
+        border-color 0.2s ease;
 }
 
-.card-data{
+.cardHistorico:hover {
+    border-color: rgba(28, 59, 96, 0.2);
+    box-shadow: 0 6px 16px rgba(17, 34, 59, 0.12);
+}
+
+/* ---- DATA E HORA ---- */
+
+.card-data {
     display: grid;
     grid-template-columns: 40px auto;
     gap: 10px;
     align-items: center;
 }
 
-.dataHora{
+.dataHora {
     display: flex;
     flex-direction: column;
     gap: 4px;
 }
 
-.card-data i{
+.card-data i {
     font-size: 28px;
-    color: #41B0EC;
+    color: #1C3B60;
 }
 
-.card-sintomas{
-    display:flex;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-}
-
-.card-sintomas p{
+.data {
     margin: 0;
-    max-width: 320px;
-}
-
-.status{
-    text-align: center;
-    justify-self: center;
-    width: 170px;
-    padding: 10px 20px;
-    border-radius: 30px;
+    color: #312C2B;
     font-weight: 600;
 }
 
-.em-andamento{
-    background-color: #FFF7B4;
-    color: #D69A00;
+.hora {
+    color: #6B7280;
+    font-size: 14px;
 }
 
-.concluido{
-    background-color: #AADFBD;
-    color: #46B970;
+/* ---- SINTOMAS ---- */
+
+.card-sintomas {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+
+    min-width: 0;
 }
 
-@media(max-width: 768px){
+.card-sintomas p {
+    margin: 0;
+    max-width: 320px;
 
-    .cardHistorico{
-        grid-template-columns:1fr;
-        gap:18px;
-        text-align:center;
+    color: #312C2B;
+    line-height: 1.4;
+
+    overflow-wrap: anywhere;
+}
+
+/* ---- STATUS DA TRIAGEM ---- */
+
+.status {
+    text-align: center;
+    justify-self: center;
+
+    width: 170px;
+    padding: 10px 20px;
+
+    border-radius: 30px;
+
+    font-weight: 600;
+    font-size: 14px;
+}
+
+/* Triagem ainda em andamento: amarelo */
+.em-andamento {
+    background-color: #FFF3C4;
+    color: #704D00;
+}
+
+/* Triagem concluída: verde */
+.concluido {
+    background-color: #DCEFE2;
+    color: #24613B;
+}
+
+/* ---- PARTE PARA MOBILE ---- */
+
+@media (max-width: 768px) {
+
+    .cardHistorico {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 18px;
+
+        text-align: center;
+
+        margin: 12px;
+        padding: 20px 16px;
+
+        border-radius: 18px;
     }
 
-    .card-data{
-        justify-content:center;
+    .card-data {
+        justify-content: center;
     }
 
-    .status{
-        justify-self:center;
+    .card-sintomas p {
+        max-width: 100%;
     }
 
+    .status {
+        justify-self: center;
+        max-width: 100%;
+    }
 }

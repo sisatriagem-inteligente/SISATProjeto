@@ -48,7 +48,7 @@ export default function Login(){
       }
     }
   return (
-    <div className="login-container">  {/* isso é como se faz um comentario dentro do return (JSX)*/}
+    <div className="login-container login-paciente-container">  {/* isso é como se faz um comentario dentro do return (JSX)*/}
     <h1 className='sr-only'>Entrar no SISAT</h1>
       <div className='login-card'>
         {/* Cabeçalho */}
@@ -99,6 +99,21 @@ export default function Login(){
           {carregando ? 'Entrando...' : 'Entrar'}
         </button>
        </form>
+
+       {/* Acessos às funcionalidades de recuperação */}
+        <div className="login-extra-links">
+          <Link to="/recuperar-senha">
+            Esqueci minha senha
+          </Link>
+
+          <p>
+            Já tem uma conta, mas ainda não configurou as palavras-chave?
+            {' '}
+            <Link to="/configurar-palavras-chave">
+              Configurar agora
+            </Link>
+          </p>
+        </div>
 
        {mensagem && <p className='auth-message' role='alert'>{mensagem}</p>}
 

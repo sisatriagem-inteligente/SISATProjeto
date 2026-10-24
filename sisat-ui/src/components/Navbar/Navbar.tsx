@@ -1,8 +1,14 @@
-import { useState } from 'react'; 
-import { Link, useNavigate } from 'react-router-dom';
-import { useLocation } from 'react-router-dom';
+import { useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import './Navbar.css';
 import logoImg from '/src/assets/img/logoMaisGrossa.png';
+import {
+    encerrarSessao,
+    obterMensagemErro,
+    obterUsuario
+} from '../../services/api';
+import { criarTriagem } from '../../services/triagensApi';
 
 export default function Navbar(){
     
@@ -13,8 +19,43 @@ export default function Navbar(){
 
     //estado para controlar o menu no celular
     const [menuAberto, setMenuAberto] = useState(false);
-    const estaNoChatbot = location.pathname.startsWith('/chatbot/');
+
+    const [iniciandoTriagem, setIniciandoTriagem] = useState(false);
+    const [erroTriagem, setErroTriagem] = useState('');
+
+    const estaNoChatbot =
+        location.pathname === '/chatbot' ||
+        location.pathname.startsWith('/chatbot/');
+
+
     const estaNaFicha = location.pathname.startsWith('/ficha-atendimento/');
+
+
+    // inicio da lógica da navbar mudar de cor dependendo do fluxo do usuário 
+
+    const estaNoFluxoPaciente =
+        location.pathname === '/inicioPaciente' ||
+        location.pathname === '/verAnteriores' ||
+        estaNoChatbot;
+    
+    const estaNoFluxoMedico =
+        location.pathname === '/inicioMedico' ||
+        location.pathname === '/painelAtendimento' ||
+        estaNaFicha;
+
+    const usuario = obterUsuario();
+
+    const exibirLogout = 
+        (estaNoFluxoPaciente || estaNoFluxoMedico) && 
+        usuario !== null;
+
+    let temaNavbar = 'navbar-padrao'; //tema padrão da navbar
+
+    if (estaNoFluxoPaciente) {
+        temaNavbar = 'navbar-paciente'; //tema da navbar para o fluxo do paciente
+    } else if (estaNoFluxoMedico) {
+        temaNavbar = 'navbar-medico'; //tema da navbar para o fluxo do médico
+    }
 
    //lista de rotas que devem exibir a Navbar
     const rotasComNavbar= [ //aqui estão listadas todas as rotas que devem exibir a Navbar
@@ -27,25 +68,42 @@ export default function Navbar(){
         '/inicioPaciente',
         '/verAnteriores',
         '/inicioMedico',
-        '/painelAtendimento'
+        '/painelAtendimento',
+        '/recuperar-senha',
+        '/configurar-palavras-chave',
+        '/palavras-chave'
     ];
 
-    if (!rotasComNavbar.includes(location.pathname) && !estaNoChatbot && !estaNaFicha) {
-        return null; // Retorna null para não renderizar a Navbar
+    // Não exibe a Navbar na tela do chatbot.
+    // Nas demais rotas, mantém a regra atual de exibição.
+    if (
+        estaNoChatbot ||
+        (!rotasComNavbar.includes(location.pathname) && !estaNaFicha)
+    ) {
+        return null;
     }
 
     //lista de rotas que devem exibir o MENU (versão mobile da Navbar)
     const rotasComMenu = [
-        '/',
-        '/login',
-        '/cadastro',
-        '/loginMedico',
-        '/comoFunciona',
-        '/quemSomos',
-        '/inicioPaciente',
-        '/inicioMedico'
-    ]
-    const temMenu = rotasComMenu.includes(location.pathname);
+    '/',
+    '/login',
+    '/cadastro',
+    '/loginMedico',
+    '/comoFunciona',
+    '/quemSomos',
+    '/inicioPaciente',
+    '/verAnteriores',
+    '/inicioMedico',
+    '/painelAtendimento',
+    '/recuperar-senha',
+    '/configurar-palavras-chave',
+    '/palavras-chave'
+    ];
+
+    const temMenu =
+        rotasComMenu.includes(location.pathname) ||
+        estaNoChatbot ||
+        estaNaFicha;
 
 
 
@@ -65,6 +123,96 @@ export default function Navbar(){
      //função que inverte o estado do menu do celular (se tá aberto, fecha, se tá fechado, abre)
     const alternarMenu = () => {
         setMenuAberto(!menuAberto);
+    };
+
+    const iniciarTriagem = async () => {
+        const usuario = obterUsuario();
+
+        if (!usuario || usuario.role !== 'paciente') {
+            navigate('/login');
+            return;
+        }
+
+        const triagemAtiva = localStorage.getItem('triagem_ativa_id');
+
+        if (triagemAtiva) {
+            navigate(`/chatbot/${triagemAtiva}`);
+            return;
+        }
+
+        setIniciandoTriagem(true);
+        setErroTriagem('');
+
+        try {
+            const resposta = await criarTriagem(usuario.id);
+            const triagemId = resposta.data.triagem.id;
+
+            localStorage.setItem('triagem_ativa_id', triagemId);
+            navigate(`/chatbot/${triagemId}`);
+        } catch (falha) {
+    if (
+        axios.isAxiosError(falha) &&
+        falha.response?.status === 409
+    ) {
+        setErroTriagem(
+            'Já existe uma triagem pendente para esta conta. No momento, não é possível iniciar outra nem retomar automaticamente a anterior. Os registros já salvos não serão apagados.'
+        );
+    } else {
+        setErroTriagem(obterMensagemErro(falha));
+    }
+    } finally {
+        setIniciandoTriagem(false);
+    }
+    };
+
+    const sairDaConta = () => {
+    const usuarioAtual = obterUsuario();
+
+    let mensagemConfirmacao: string | null = null;
+
+    // Paciente com uma referência de triagem ativa
+    // ou que ainda está na tela do chatbot.
+    if (
+        usuarioAtual?.role === 'paciente' &&
+        (
+            localStorage.getItem('triagem_ativa_id') ||
+            estaNoChatbot
+        )
+    ) {
+        mensagemConfirmacao =
+            'Os registros já salvos não serão apagados, mas o SISAT ainda não consegue retomar automaticamente uma triagem pendente após um novo login. Deseja sair mesmo assim?';
+    }
+
+    // Médico na ficha: alterações não salvas podem ser perdidas.
+    else if (
+        usuarioAtual?.role === 'medico' &&
+        estaNaFicha
+    ) {
+        mensagemConfirmacao =
+            'Se houver alterações ainda não salvas na ficha médica, elas serão perdidas. Deseja sair mesmo assim?';
+    }
+
+    // Só interrompe a saída se houver uma confirmação
+    // necessária e o usuário optar por permanecer.
+    if (
+        mensagemConfirmacao &&
+        !window.confirm(mensagemConfirmacao)
+    ) {
+        return;
+    }
+
+    // Define o login de destino antes de limpar a sessão.
+    const destino =
+        usuarioAtual?.role === 'medico'
+            ? '/loginMedico'
+            : '/login';
+
+        encerrarSessao();
+
+        setMenuAberto(false);
+        setErroTriagem('');
+
+        navigate(destino, { replace: true });
     };
 
 
@@ -98,7 +246,7 @@ export default function Navbar(){
     //essa parte serve para alterar os itens do menu da navbar dependendo da página que o usuário está
     let itensMenu;
 
-    if(location.pathname === '/login' || location.pathname === '/cadastro' || location.pathname === '/comoFunciona'){
+    if(location.pathname === '/login' || location.pathname === '/cadastro' || location.pathname === '/comoFunciona'|| location.pathname === '/recuperar-senha' || location.pathname === '/configurar-palavras-chave' || location.pathname === '/palavras-chave'){
         itensMenu = (
             <>
             <li><Link to="/">Início</Link></li>
@@ -130,7 +278,16 @@ export default function Navbar(){
          <>
             <li><Link to='/inicioPaciente' className='nav-button'>Início</Link></li>
             <li><Link to='/verAnteriores' className='nav-button'>Ver Triagens Anteriores</Link></li>
-            <li><Link to="/inicioPaciente" className='loginMedico'>Nova Triagem</Link></li>
+            <li>
+                <button
+                    type='button'
+                    onClick={iniciarTriagem}
+                    className='loginMedico nav-button'
+                    disabled={iniciandoTriagem}
+                >
+                    {iniciandoTriagem ? 'Iniciando...' : 'Nova Triagem'}
+                </button>
+            </li>
             </>
     
     } else if (location.pathname === '/inicioMedico' || location.pathname === '/painelAtendimento' || estaNaFicha){
@@ -153,7 +310,7 @@ export default function Navbar(){
 
     return(
         
-        <nav className='navbar'>
+        <nav className={`navbar ${temaNavbar}`}>
             {/* lado esquerdo → logo que funciona como botão para a tela de início */}
             <div className={`navbar-logo-container ${
                 !logoVisivelMobile ? 'logo-esconder-mobile' : ''
@@ -167,9 +324,7 @@ export default function Navbar(){
                         <img src={logoImg} alt='Logo SISAT' className='navbar-logo-img'/>
                     </div>
                 )}
-                {/* <button onClick={irParaInicio} className='navbar-brand-btn'>
-                    <img src={logoImg} alt='Logo SISAT' className='navbar-logo-img'/>
-                </button> */}
+        
             </div>
 
             {/* botão de menu para dispositivos móveis (menu hamburguer/três risquinhos) */}
@@ -183,6 +338,26 @@ export default function Navbar(){
             
             <ul className={menuAberto ? 'navbar-menu ativo' : 'navbar-menu'}>
                 {itensMenu}
+                {exibirLogout && (
+                    <li>
+                        <button
+                            type="button"
+                            onClick={sairDaConta}
+                            className="logout-btn"
+                        >
+                            <i
+                                className="bi bi-person-circle"
+                                aria-hidden="true"
+                            />
+                            <span>Sair</span>
+                        </button>
+                    </li>
+                )}
+                {erroTriagem && (
+                    <li role='alert'>
+                        {erroTriagem}
+                    </li>
+                )}
             </ul>
 
             {menuAberto && <div className="menu-overlay" onClick={alternarMenu}></div>}

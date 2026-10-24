@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 
 export default function InicioMedico() {
     return (
-        <div className='ip-container'>
+        <div className='ip-container ip-container-medico'>
             <div className='ip-content'>
                 {/* Esquerda */}
                 <div className='ip-left'>

@@ -36,7 +36,7 @@ export default function Chatbot() {
     const [mensagens, setMensagens] = useState<Mensagem[]>([
         {
             id:1,
-            texto: 'Olá! Eu sou a MarIA, assistente virtual do SISAT, e vou acompanhar você durante sua triagem. Para começarmos, vou precisar de algumas informações: nome completo, idade, sexo, queixa principal, sintomas, há quanto tempo eles começaram, intensidade dos sintomas e outras informações que possam ajudar na avaliação. Vou fazer as perguntas aos poucos, de forma simples. Podemos começar?',
+            texto: 'Olá! Eu sou a MarIA, assistente virtual do SISAT, e vou acompanhar você durante sua triagem. Para começarmos, vou precisar de algumas informações: nome completo, idade, sexo, queixa principal, sintomas, há quanto tempo eles começaram, intensidade dos sintomas e outras informações que possam ajudar na avaliação. Podemos começar?',
             tipo: 'bot'
         }
     ]);
@@ -44,6 +44,19 @@ export default function Chatbot() {
 
     const [texto, setTexto] = useState('');
 
+/*
+ * INTEGRAÇÃO CODEX — ENVIO REAL E MODO DE DEMONSTRAÇÃO
+ *
+ * Esta função envia mensagens ao BFF por meio de
+ * enviarMensagemMaria().
+ *
+ * Garantir que o modo de demonstração não faça essa chamada.
+ * Caso exista uma simulação local da conversa, mantê-la separada
+ * das requisições reais e dos registros do backend.
+ *
+ * No fluxo real, confirmar o contrato da resposta e preservar
+ * o tratamento de erros e a prevenção de envios duplicados.
+ */
     async function enviarMensagem() {
 
         if (texto.trim() === '' || enviando || mostrarTriagemConcluida || !triagemId) {
@@ -88,6 +101,26 @@ export default function Chatbot() {
             /*
             * A finalização da triagem depende somente do campo "finalizada" retornado pela API*/
 
+
+            /*
+            * INTEGRAÇÃO CODEX — FIM DA COLETA DA MARIA
+            *
+            * O campo finalizada indica que a coleta da MarIA terminou.
+            * Ele não comprova que o atendimento médico foi concluído
+            * nem que o backend liberou uma nova triagem para o paciente.
+            *
+            * Revisar a remoção de triagem_ativa_id abaixo: apagar essa
+            * referência somente porque a MarIA terminou pode deixar
+            * o frontend sem o ID de uma triagem que continua pendente.
+            *
+            * Pelo comportamento informado anteriormente, uma nova
+            * tentativa de criação pode retornar HTTP 409 enquanto
+            * a triagem anterior estiver Aguardando.
+            *
+            * Confirmar o fluxo e os recursos disponíveis no BFF integrado
+            * antes de alterar a persistência do ID. Não inventar endpoints
+            * para localizar ou retomar a triagem.
+            */
             if (resposta.data.finalizada === true) {
                 localStorage.removeItem('triagem_ativa_id');
                 setMostrarTriagemConcluida(true);
@@ -112,6 +145,21 @@ export default function Chatbot() {
         setMostrarConfirmacao(false);
     }
 
+
+    /*
+    * INTEGRAÇÃO CODEX — SAÍDA DA CONVERSA
+    *
+    * Atualmente, esta função apenas navega para /inicioPaciente.
+    * Ela não chama o backend para cancelar ou excluir a triagem,
+    * nem comprova que os registros foram apagados.
+    *
+    * Confirmar se existe uma operação real de abandono no BFF.
+    * Se não existir, não simular um cancelamento no frontend
+    * nem afirmar que o histórico foi excluído.
+    *
+    * Preservar a distinção entre sair da tela, interromper a coleta
+    * da IA e cancelar ou concluir uma triagem no backend.
+    */
     function abandonarTriagem() {
         navigate('/inicioPaciente');
     }

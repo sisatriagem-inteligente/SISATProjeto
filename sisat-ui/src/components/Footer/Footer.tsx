@@ -40,6 +40,9 @@ export default function Footer(){
         "/cadastro":"hall",
         "/login":"hall",
         "/loginMedico":"hall",
+        "/configurar-palavras-chave":"hall",
+        "/palavras-chave":"hall",
+        "/recuperar-senha":"hall",
 
         "/inicioPaciente":"paciente",
         "/verAnteriores":"paciente",
