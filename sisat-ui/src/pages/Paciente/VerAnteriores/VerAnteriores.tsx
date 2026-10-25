@@ -12,33 +12,6 @@ export default function VerAnteriores(){
     const [erro, setErro] = useState(usuarioId ? '' : 'Faça login para consultar suas triagens.');
 
 
-        /*
-     * INTEGRAÇÃO CODEX — HISTÓRICO DO PACIENTE
-     *
-     * Esta tela consulta o histórico real por meio de
-     * buscarTriagensDoPaciente().
-     *
-     * MODO DE DEMONSTRAÇÃO:
-     * - Conferir VITE_SISAT_FRONTEND_DEMO.
-     * - Quando a demonstração estiver ativa, não realizar
-     *   consultas ao BFF por este fluxo.
-     * - Ajustar o estado de carregamento junto com o useEffect,
-     *   para que a tela não fique carregando indefinidamente.
-     * - Utilizar dados simulados somente se fizerem parte
-     *   da demonstração planejada; não apresentá-los como reais.
-     *
-     * INTEGRAÇÃO REAL:
-     * - Confirmar a rota e o formato da resposta no BFF atualizado.
-     * - Conferir os campos utilizados pelos cartões de histórico.
-     * - Preservar o tratamento de carregamento, erros e lista vazia.
-     *
-     * STATUS DA TRIAGEM:
-     * - Confirmar no BFF o significado de Aguardando e Concluida.
-     * - Não confundir o fim da coleta da MarIA com a conclusão
-     *   do atendimento médico.
-     * - Revisar o texto exibido nos cartões de acordo com
-     *   os estados reais definidos pelo backend.
-     */
     useEffect(() => {
         if (!usuarioId) return;
         buscarTriagensDoPaciente(usuarioId)
@@ -83,7 +56,7 @@ export default function VerAnteriores(){
                                     minute: '2-digit',
                                 })}
                                 sintomas={triagem.queixa_principal ?? 'Não informado'}
-                                status={triagem.status === 'Concluida' ? 'Concluído' : 'Em andamento'}
+                                status={triagem.status === 'Concluida' ? 'Concluído' : triagem.status === 'Aguardando' ? 'Aguardando atendimento' : triagem.status}
                             />
                         );
                     })}

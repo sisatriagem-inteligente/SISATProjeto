@@ -18,6 +18,7 @@ import {
 
 import { TriagensController } from './triagem.controller';
 import { TriagensService } from './triagem.service';
+import { PacienteTriagemGuard } from './paciente-triagem.guard';
 
 /**
  * Módulo responsável pelas funcionalidades
@@ -69,7 +70,7 @@ import { TriagensService } from './triagem.service';
    * Service que contém as regras
    * de negócio das triagens.
    */
-  providers: [TriagensService],
+  providers: [TriagensService, PacienteTriagemGuard],
 
   /**
    * Permite que o módulo da MarIA reutilize a regra

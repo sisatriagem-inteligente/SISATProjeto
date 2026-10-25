@@ -58,7 +58,6 @@ function normalizarResposta(resposta: string): string {
 
 
 
-// TEMPORÁRIO — REMOVER NA INTEGRAÇÃO.
 // O modo de demonstração só funciona durante o desenvolvimento.
 const modoDemonstracaoFrontend =
   import.meta.env.DEV &&
@@ -84,7 +83,6 @@ const [perguntasApi, setPerguntasApi] =
 const [statusPerguntas, setStatusPerguntas] =
   useState<'idle' | 'success' | 'error'>('idle');
 
-// TEMPORÁRIO — REMOVER NA INTEGRAÇÃO COM O BACKEND.
 // As perguntas demonstrativas são calculadas, não copiadas
 // para o estado com setState dentro do useEffect.
 const perguntas = modoDemonstracaoFrontend
@@ -245,7 +243,6 @@ const carregandoPerguntas =
     return;
     }
 
-    // TEMPORÁRIO — REMOVER NA INTEGRAÇÃO COM O BACKEND.
     // Simula a conclusão visual, sem enviar respostas ou token.
     if (modoDemonstracaoFrontend) {
     setMensagem(

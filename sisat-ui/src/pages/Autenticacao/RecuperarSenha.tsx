@@ -1,23 +1,20 @@
-import { useState, type ChangeEvent, type FormEvent } from 'react';
-import { Link } from 'react-router-dom';
+import { useEffect, useState, type ChangeEvent, type FormEvent } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 
 import '/src/pages/Autenticacao/Auth.css';
 import logoImg from '/src/assets/img/logoMaisGrossa.png';
 import './RecuperarSenha.css';
 
 
-// TEMPORÁRIO — REMOVER NA INTEGRAÇÃO COM O BFF.
-//
-// As perguntas vêm de uma constante local compartilhada para que
-// cadastro e recuperação exibam exatamente os mesmos textos durante
-// o desenvolvimento do frontend.
-//
-// Na integração:
-// 1. Consultar GET /auth/paciente/perguntas-recuperacao.
-// 2. Utilizar os textos retornados pelo backend.
-// 3. Preservar a ordem dos IDs e a correspondência com as respostas.
-// 4. Remover a dependência de PERGUNTAS_RECUPERACAO_DEMO.
+// As perguntas locais são usadas somente no modo de demonstração.
 import { PERGUNTAS_RECUPERACAO_DEMO } from './perguntasRecuperacaoDemo';
+import {
+  obterMensagemErro,
+  obterPerguntasRecuperacao,
+  redefinirSenhaPaciente,
+  validarRespostaRecuperacao,
+  type PerguntaRecuperacao,
+} from '../../services/api';
 
 
 
@@ -28,8 +25,15 @@ const modoDemonstracaoFrontend =
 type TipoMensagem = 'erro' | 'info' | 'sucesso';
 
 export default function RecuperarSenha() {
+  const navigate = useNavigate();
   const [cpf, setCpf] = useState('');
   const [resposta, setResposta] = useState('');
+  const [perguntasApi, setPerguntasApi] = useState<PerguntaRecuperacao[]>([]);
+  const [carregandoPerguntas, setCarregandoPerguntas] = useState(!modoDemonstracaoFrontend);
+  const [validando, setValidando] = useState(false);
+  const [redefinindo, setRedefinindo] = useState(false);
+  const [resetToken, setResetToken] = useState('');
+  const [resetExpiraEm, setResetExpiraEm] = useState(0);
 
   const [palavraConferida, setPalavraConferida] = useState(false);
   const [novaSenha, setNovaSenha] = useState('');
@@ -41,6 +45,27 @@ export default function RecuperarSenha() {
   const [mensagem, setMensagem] = useState('');
   const [tipoMensagem, setTipoMensagem] = useState<TipoMensagem>('info');
 
+  const perguntas = modoDemonstracaoFrontend ? PERGUNTAS_RECUPERACAO_DEMO : perguntasApi;
+
+  useEffect(() => {
+    if (modoDemonstracaoFrontend) return;
+    let ativo = true;
+    obterPerguntasRecuperacao()
+      .then((resultado) => {
+        if (ativo) setPerguntasApi([...resultado.data.questions].sort((a, b) => a.id - b.id));
+      })
+      .catch((erro) => {
+        if (ativo) {
+          setMensagem(obterMensagemErro(erro));
+          setTipoMensagem('erro');
+        }
+      })
+      .finally(() => {
+        if (ativo) setCarregandoPerguntas(false);
+      });
+    return () => { ativo = false; };
+  }, []);
+
   function mostrarMensagem(texto: string, tipo: TipoMensagem) {
     setMensagem(texto);
     setTipoMensagem(tipo);
@@ -48,6 +73,8 @@ export default function RecuperarSenha() {
 
   function bloquearRedefinicao() {
     setPalavraConferida(false);
+    setResetToken('');
+    setResetExpiraEm(0);
     setNovaSenha('');
     setConfirmarNovaSenha('');
   }
@@ -77,7 +104,8 @@ export default function RecuperarSenha() {
     setMensagem('');
   }
 
-  function handleConferirPalavra() {
+  async function handleConferirPalavra() {
+    if (validando || redefinindo) return;
     setMensagem('');
 
     if (cpf.replace(/\D/g, '').length !== 11) {
@@ -95,27 +123,23 @@ export default function RecuperarSenha() {
 
 
 
-    // INTEGRAÇÃO COM O BFF — SUBSTITUIR ESTE BLOCO INFORMATIVO.
-//
-// Implementar a chamada real que valida uma única resposta de
-// recuperação. O endpoint deverá ser conferido no código atualizado
-// do BFF pelo Codex, incluindo DTO, nomes dos campos e resposta.
-//
-// Após a validação:
-// - Se a resposta for incorreta, apresentar a mensagem apropriada.
-// - Se for correta, guardar o token temporário de redefinição em
-//   estado React e liberar os campos de nova senha.
-// - Não salvar esse token no localStorage.
-// - Não considerar palavraConferida, isoladamente, como autorização
-//   para alterar a senha: o BFF deverá validar o token na redefinição.
-//
-// A simulação abaixo só pode ser utilizada no modo de demonstração.
-
     if (!modoDemonstracaoFrontend) {
-      mostrarMensagem(
-        'A validação real da palavra-chave ainda depende da integração com o backend. Nenhuma resposta foi verificada.',
-        'info',
-      );
+      setValidando(true);
+      try {
+        const resultado = await validarRespostaRecuperacao({
+          cpf: cpf.replace(/\D/g, ''),
+          answer: resposta,
+        });
+        setResetToken(resultado.data.reset_token);
+        setResetExpiraEm(Date.now() + resultado.data.expires_in_seconds * 1000);
+        setPalavraConferida(true);
+        mostrarMensagem('Resposta confirmada. Defina uma nova senha.', 'sucesso');
+      } catch (erro) {
+        bloquearRedefinicao();
+        mostrarMensagem(obterMensagemErro(erro), 'erro');
+      } finally {
+        setValidando(false);
+      }
       return;
     }
 
@@ -129,7 +153,7 @@ export default function RecuperarSenha() {
     );
   }
 
-  function handleRedefinirSenha(evento: FormEvent<HTMLFormElement>) {
+  async function handleRedefinirSenha(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault();
     setMensagem('');
 
@@ -166,29 +190,24 @@ export default function RecuperarSenha() {
     }
 
 
-// INTEGRAÇÃO COM O BFF — SUBSTITUIR ESTE BLOCO INFORMATIVO.
-//
-// Implementar a chamada real de redefinição de senha utilizando
-// o token temporário obtido na validação da resposta.
-//
-// O Codex deverá conferir no BFF atualizado:
-// - A rota e o método HTTP definitivos.
-// - O DTO e o nome exato do campo da nova senha.
-// - O formato das respostas de sucesso e erro.
-// - A validade e as regras de uso único do token.
-//
-// Enviar a nova senha somente depois de validar localmente a
-// confirmação e os limites de tamanho conhecidos.
-// O BFF continua responsável por validar o token e salvar a senha.
-//
-// Após sucesso real, apresentar a confirmação e encaminhar ao login.
-// Não utilizar a mensagem de sucesso da demonstração como resultado real.
-    
     if (!modoDemonstracaoFrontend) {
-      mostrarMensagem(
-        'A redefinição real ainda não está conectada. Nenhuma senha foi alterada.',
-        'info',
-      );
+      if (!resetToken || Date.now() >= resetExpiraEm) {
+        bloquearRedefinicao();
+        mostrarMensagem('A autorização expirou. Confira a resposta novamente.', 'erro');
+        return;
+      }
+      setRedefinindo(true);
+      try {
+        await redefinirSenhaPaciente({ resetToken, newPassword: novaSenha });
+        bloquearRedefinicao();
+        mostrarMensagem('Senha redefinida com sucesso. Faça login novamente.', 'sucesso');
+        setTimeout(() => navigate('/login', { replace: true }), 1500);
+      } catch (erro) {
+        bloquearRedefinicao();
+        mostrarMensagem(obterMensagemErro(erro), 'erro');
+      } finally {
+        setRedefinindo(false);
+      }
       return;
     }
 
@@ -223,7 +242,7 @@ export default function RecuperarSenha() {
         <div className="recuperar-senha-aviso" role="status">
           {modoDemonstracaoFrontend
             ? 'Modo de demonstração: a validação e a redefinição são simuladas. Nenhum dado será enviado ou salvo.'
-            : 'As etapas de validação e redefinição ainda dependem da integração com o backend.'}
+            : 'A resposta será conferida pelo servidor antes de liberar a nova senha.'}
         </div>
 
         <form
@@ -240,6 +259,7 @@ export default function RecuperarSenha() {
               maxLength={14}
               value={cpf}
               onChange={handleCpfChange}
+              disabled={validando || redefinindo}
               autoComplete="username"
               required
             />
@@ -251,7 +271,7 @@ export default function RecuperarSenha() {
             </p>
 
             <ol>
-              {PERGUNTAS_RECUPERACAO_DEMO.map((pergunta) => (
+              {perguntas.map((pergunta) => (
                 <li key={pergunta.id}>{pergunta.text}</li>
               ))}
             </ol>
@@ -267,11 +287,9 @@ export default function RecuperarSenha() {
               id="resposta-recuperacao"
               value={resposta}
               onChange={handleRespostaChange}
+              disabled={validando || redefinindo}
               placeholder="Digite uma das palavras cadastradas"
-            // Limite visual alinhado ao contrato conhecido do BFF.
-            // A validação definitiva continua sendo responsabilidade do servidor.
-            // Durante a integração, confirmar a correspondência dos limites
-            // de caracteres e bytes com o DTO de validação da recuperação.
+            // A validação definitiva é realizada pelo BFF.
               maxLength={80}
               autoComplete="off"
               required
@@ -282,8 +300,9 @@ export default function RecuperarSenha() {
             type="button"
             className="submit-btn"
             onClick={handleConferirPalavra}
+            disabled={carregandoPerguntas || perguntas.length !== 3 || validando || redefinindo}
           >
-            Conferir palavra-chave
+            {validando ? 'Conferindo...' : 'Conferir palavra-chave'}
           </button>
 
           <div
@@ -369,9 +388,9 @@ export default function RecuperarSenha() {
             <button
               type="submit"
               className="submit-btn"
-              disabled={!palavraConferida}
+              disabled={!palavraConferida || redefinindo}
             >
-              Redefinir senha
+              {redefinindo ? 'Redefinindo...' : 'Redefinir senha'}
             </button>
           </div>
 

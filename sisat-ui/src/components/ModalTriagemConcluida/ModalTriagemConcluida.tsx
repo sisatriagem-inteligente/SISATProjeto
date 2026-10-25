@@ -2,34 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import './ModalTriagemConcluida.css';
 
 
-/*
- * INTEGRAÇÃO CODEX — FINALIZAÇÃO DA COLETA DA MARIA
- *
- * Este modal é exibido quando a coleta de informações
- * pela MarIA termina.
- *
- * IMPORTANTE:
- * - O fim da coleta não significa que o atendimento médico
- *   foi concluído.
- * - A triagem pode continuar aguardando atendimento profissional.
- * - Não liberar uma nova triagem apenas porque este modal
- *   foi exibido ou porque o paciente voltou à tela inicial.
- *
- * NAVEGAÇÃO:
- * - irParaHistorico() e irParaInicio() apenas mudam de rota.
- * - Esses métodos não cancelam, excluem nem finalizam
- *   registros no backend.
- * - Não implementar operações de cancelamento neste componente
- *   sem confirmar que existe um contrato correspondente no BFF.
- *
- * Durante a integração, conferir se InicioPaciente.tsx e o
- * fluxo de criação de triagem respeitam a existência de uma
- * triagem pendente, inclusive quando o ID local não existe.
- *
- * PRESERVAR o modal e seus caminhos de navegação, ajustando
- * o comportamento somente quando necessário para manter
- * a regra de negócio definida pelo backend.
- */
+// O fim da coleta pela MarIA não conclui o atendimento médico.
 function ModalTriagemConcluida() {
   const navigate = useNavigate();
 
@@ -57,7 +30,7 @@ function ModalTriagemConcluida() {
         </div>
 
         <h2 id="titulo-triagem-concluida">
-          Triagem concluída!
+          Coleta concluída!
         </h2>
 
         <p>

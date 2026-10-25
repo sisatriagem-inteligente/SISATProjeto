@@ -2,8 +2,9 @@ import './InicioPaciente.css';
 import bemVindo from '../../../assets/img/bemvindo-paciente.png';
 import { Link, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
+import axios from 'axios';
 import { obterMensagemErro, obterUsuario } from '../../../services/api';
-import { criarTriagem } from '../../../services/triagensApi';
+import { buscarTriagemPorId, criarTriagem } from '../../../services/triagensApi';
 
 export default function InicioPaciente(){
 
@@ -14,23 +15,6 @@ export default function InicioPaciente(){
 
 
 
-/*
- * INTEGRAÇÃO CODEX — MODO DE DEMONSTRAÇÃO E CRIAÇÃO
- *
- * Esta função pode criar uma triagem real por meio do BFF.
- *
- * Conferir a condição VITE_SISAT_FRONTEND_DEMO já utilizada
- * nas telas de autenticação e aplicar o comportamento de
- * demonstração também a este fluxo.
- *
- * Quando o modo de demonstração estiver ativo, não chamar
- * criarTriagem() nem apresentar uma operação simulada como
- * se tivesse sido registrada no backend.
- *
- * No fluxo real, conferir a resposta da API antes de salvar
- * o ID e navegar para o chatbot.
- */   
-
     async function comecarTriagem() {
         const usuario = obterUsuario();
         if (!usuario || usuario.role !== 'paciente') {
@@ -38,40 +22,35 @@ export default function InicioPaciente(){
             return;
         }
 
-        /*
-        * INTEGRAÇÃO CODEX — TRIAGEM ATIVA E ESTADO DO BACKEND
-        *
-        * Este identificador local ajuda a navegar para uma triagem
-        * conhecida pelo navegador, mas não comprova sozinho o estado
-        * atual da triagem no backend.
-        *
-        * Conferir o comportamento de POST /triagens quando já existe
-        * uma triagem Aguardando para o paciente.
-        *
-        * Se não houver triagem_ativa_id local, não presumir que não
-        * existe uma triagem pendente no servidor.
-        *
-        * Tratar respostas de conflito de forma clara, sem afirmar
-        * que uma nova triagem foi criada.
-        *
-        * Não implementar uma rota de consulta ou retomada sem confirmar
-        * que ela existe no BFF integrado e que faz parte do escopo.
-        */
-        const triagemAtiva = localStorage.getItem('triagem_ativa_id');
-        if (triagemAtiva) {
-            navigate(`/chatbot/${triagemAtiva}`);
-            return;
-        }
-
         setIniciando(true);
         setErro('');
         try {
+            const triagemAtiva = localStorage.getItem('triagem_ativa_id');
+            if (triagemAtiva) {
+                const { data } = await buscarTriagemPorId(triagemAtiva);
+                if (data.triagem.paciente_id !== usuario.id) {
+                    localStorage.removeItem('triagem_ativa_id');
+                    setErro('A referência local da triagem não pertence a esta conta.');
+                    return;
+                }
+                if (data.triagem.status === 'Concluida') {
+                    localStorage.removeItem('triagem_ativa_id');
+                } else if (data.triagem.chat_finalizado) {
+                    setErro('Esta triagem não está disponível para continuar a conversa.');
+                    return;
+                } else {
+                    navigate(`/chatbot/${triagemAtiva}`);
+                    return;
+                }
+            }
             const resposta = await criarTriagem(usuario.id);
             const triagemId = resposta.data.triagem.id;
             localStorage.setItem('triagem_ativa_id', triagemId);
             navigate(`/chatbot/${triagemId}`);
         } catch (falha) {
-            setErro(obterMensagemErro(falha));
+            setErro(axios.isAxiosError(falha) && falha.response?.status === 409
+                ? 'Já existe uma triagem pendente para esta conta. Não é possível iniciar outra; o BFF ainda não permite localizar automaticamente a triagem sem o ID salvo no navegador.'
+                : obterMensagemErro(falha));
         } finally {
             setIniciando(false);
         }

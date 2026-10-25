@@ -1,4 +1,4 @@
-import api from './api';
+import api, { obterToken } from './api';
 
 /**
  * Centraliza os tipos e as requisições utilizadas
@@ -11,18 +11,6 @@ import api from './api';
 /**
  * Valores padronizados pelo backend para representar
  * o estado, a intensidade e a classificação da triagem.
- */
-
-/**
- * INTEGRAÇÃO CODEX — VALIDAR OS TIPOS DA TRIAGEM
- *
- * Conferir os valores e nomes dos campos no BFF atualizado.
- * Preservar os valores utilizados pelas telas e componentes,
- * ajustando-os somente quando necessário para corresponder
- * ao contrato real do backend.
- *
- * Se algum tipo for alterado, procurar suas referências em
- * todo o frontend para evitar inconsistências entre telas.
  */
 
 export type StatusTriagem = 'Aguardando' | 'Concluida';
@@ -137,9 +125,16 @@ export interface TriagemCompleta {
   medico_id: string | null;
   status: StatusTriagem;
   data_hora_entrada: string;
+  chat_finalizado: boolean;
   cor_classificacao: CorClassificacao | null;
-  dados_paciente: DadosPacienteTriagem | null;
-  dados_triagem: DadosTriagemMaria | null;
+  dados_paciente: { nome: string | null; idade: number | null; sexo: string | null };
+  dados_triagem: {
+    queixa_principal: string | null;
+    sintomas: string[];
+    tempo_sintomas: string | null;
+    intensidade: IntensidadeTriagem | null;
+    informacoes_complementares: string[];
+  };
   resumo: string | null;
   hipoteses_clinicas_iniciais: HipoteseClinicaInicial[];
   informacoes_medicas: InformacoesMedicas;
@@ -195,32 +190,17 @@ export interface RespostaPainelMedico {
  *
  * POST /triagens
  */
-/**
- * INTEGRAÇÃO CODEX — CRIAÇÃO E TRIAGEM JÁ EXISTENTE
- *
- * Conferir o comportamento de POST /triagens no BFF integrado.
- *
- * Pelo contrato informado anteriormente, a rota pode retornar
- * HTTP 409 quando o paciente já possui uma triagem com status
- * Aguardando.
- *
- * O localStorage não é a fonte definitiva do estado da triagem.
- * A ausência de triagem_ativa_id não garante que o paciente
- * possa criar outra triagem.
- *
- * Durante a integração:
- * - Tratar o cenário de triagem já existente sem apresentar
- *   uma nova triagem como se tivesse sido criada.
- * - Confirmar quais recursos reais do BFF permitem identificar
- *   ou consultar essa triagem.
- * - Não inventar endpoints nem presumir que exista uma rota
- *   para recuperar o ID da triagem bloqueante.
- * - Preservar a regra de negócio que impede iniciar outra
- *   triagem enquanto a anterior ainda estiver pendente.
- */
 export function criarTriagem(pacienteId: string) {
   return api.post<RespostaCriarTriagem>('/triagens', {
     paciente_id: pacienteId,
+  });
+}
+
+/** Exclui uma triagem ainda em coleta, mediante JWT do próprio paciente. */
+export function abandonarTriagem(triagemId: string) {
+  const token = obterToken();
+  return api.delete<{ message: string }>(`/triagens/${triagemId}`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
   });
 }
 
@@ -256,21 +236,6 @@ export function buscarTriagemPorId(triagemId: string) {
  * POST /maria/mensagem
  */
 
-/**
- * INTEGRAÇÃO CODEX — ENVIO DE MENSAGENS E DEMONSTRAÇÃO
- *
- * Esta função realiza uma requisição real ao BFF.
- * Ela não verifica, por conta própria, se o modo de demonstração
- * do frontend está ativo.
- *
- * Durante a integração, conferir todos os pontos que chamam
- * esta função e garantir que o modo de demonstração não envie
- * mensagens reais à MarIA nem altere registros do backend.
- *
- * No fluxo real, preservar o contrato de envio da mensagem
- * e confirmar a resposta recebida no BFF atualizado.
- */
-
 export function enviarMensagemMaria(triagemId: string, mensagem: string) {
   return api.post<RespostaMensagemMaria>('/maria/mensagem', {
     triagem_id: triagemId,
@@ -301,21 +266,6 @@ export function buscarPainelMedico() {
  * PATCH /triagens/:id/resultado-maria
  */
 
-/**
- * INTEGRAÇÃO CODEX — USO DA ATUALIZAÇÃO DIRETA DO RESULTADO
- *
- * O fluxo habitual do chatbot pode salvar o resultado da MarIA
- * internamente pelo BFF.
- *
- * Antes de preservar esta função como operação utilizada:
- * - Procurar todas as suas referências no frontend.
- * - Confirmar se a rota e o método PATCH existem no BFF integrado.
- * - Verificar se algum componente ainda depende dessa operação.
- *
- * Não remover a função nem criar um novo fluxo de salvamento
- * antes de confirmar essas referências e o contrato real.
- */
-
 export function salvarResultadoMaria(
   triagemId: string,
   resultado: ResultadoMaria,
@@ -325,23 +275,6 @@ export function salvarResultadoMaria(
     resultado,
   );
 }
-
-
-/**
- * INTEGRAÇÃO CODEX — OPERAÇÕES DO ATENDIMENTO MÉDICO
- *
- * Conferir no BFF integrado as rotas, os métodos HTTP,
- * os parâmetros enviados e os formatos das respostas.
- *
- * Dar atenção especial a iniciarAtendimento(),
- * salvarInformacoesMedicas() e concluirAtendimento().
- *
- * Confirmar se os status e as transições representam o fluxo
- * real do atendimento antes de modificar os contratos.
- * A conclusão da coleta pela MarIA não equivale à conclusão
- * do atendimento pelo médico.
- */
-
 
 
 /**

@@ -39,7 +39,6 @@ export default function FichaMed() {
                 navigate('/loginMedico');
                 return;
             }
-
             try {
                 const resposta = await buscarTriagemPorId(triagemId);
                 const dados = resposta.data.triagem;
@@ -62,7 +61,7 @@ export default function FichaMed() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!triagemId) return;
+        if (!triagemId || !triagem || triagem.status !== 'Aguardando' || carregando || salvando) return;
 
         setSalvando(true);
         setMensagem('');
@@ -72,8 +71,13 @@ export default function FichaMed() {
                 navigate('/loginMedico');
                 return;
             }
+            if (triagem.medico_id && triagem.medico_id !== usuario.id) {
+                setMensagem('Esta triagem já foi assumida por outro médico.');
+                return;
+            }
             if (!triagem?.medico_id) {
                 await iniciarAtendimento(triagemId, usuario.id);
+                setTriagem((atual) => atual ? { ...atual, medico_id: usuario.id } : atual);
             }
             await salvarInformacoesMedicas(triagemId, {
                 ...(altura && { altura: Number(altura.replace(',', '.')) }),
@@ -81,13 +85,19 @@ export default function FichaMed() {
                 ...(temp && { temperatura: Number(temp.replace(',', '.')) }),
                 ...(fc && { frequencia_cardiaca: Number(fc) }),
                 ...(fr && { frequencia_respiratoria: Number(fr) }),
-                ...(exameFisico && { exame_fisico_direcionado: exameFisico }),
-                ...(observacoes && { observacoes }),
+                exame_fisico_direcionado: exameFisico,
+                observacoes,
             });
             await concluirAtendimento(triagemId);
             navigate('/painelAtendimento');
         } catch (erro) {
             setMensagem(obterMensagemErro(erro));
+            try {
+                const resposta = await buscarTriagemPorId(triagemId);
+                setTriagem(resposta.data.triagem);
+            } catch {
+                // Mantém os valores digitados para permitir nova tentativa.
+            }
         } finally {
             setSalvando(false);
         }
@@ -284,7 +294,7 @@ export default function FichaMed() {
                             </div>
                         </div>
 
-                        <button type="submit" className='btn-enviar-ficha' disabled={salvando || carregando}>
+                        <button type="submit" className='btn-enviar-ficha' disabled={salvando || carregando || !triagem || triagem.status !== 'Aguardando'}>
                             {salvando ? 'Salvando...' : 'Salvar Triagem'}
                         </button>
                     </div>

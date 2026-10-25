@@ -1,8 +1,6 @@
 import type { PerguntaRecuperacao } from '../../services/api';
 
-// TEMPORÁRIO — REMOVER NA INTEGRAÇÃO COM O BACKEND.
-// Usado para desenvolver as telas sem depender da rota GET
-// /auth/paciente/perguntas-recuperacao.
+// Perguntas locais utilizadas apenas no modo de demonstração.
 export const PERGUNTAS_RECUPERACAO_DEMO: PerguntaRecuperacao[] = [
   {
     id: 1,

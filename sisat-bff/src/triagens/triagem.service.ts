@@ -180,6 +180,33 @@ export class TriagensService {
 
     return triagem;
   }
+
+  /** A exclusão só ocorre enquanto a coleta está aberta e sem atendimento médico. */
+  async abandonarTriagem(triagemId: string, pacienteId: string) {
+    if (!Types.ObjectId.isValid(triagemId)) {
+      throw new BadRequestException('O ID da triagem informado é inválido.');
+    }
+
+    const removida = await this.triagemModel.findOneAndDelete({
+      _id: new Types.ObjectId(triagemId),
+      paciente_id: new Types.ObjectId(pacienteId),
+      status: TriagemStatus.AGUARDANDO,
+      medico_id: null,
+      atendimento_iniciado_em: null,
+      chat_finalizado: { $ne: true },
+      cor_classificacao: null,
+    }).exec();
+
+    if (!removida) {
+      const existente = await this.triagemModel.findById(triagemId).exec();
+      if (!existente || String(existente.paciente_id) !== pacienteId) {
+        throw new NotFoundException('Triagem não encontrada.');
+      }
+      throw new ConflictException('Esta triagem não pode mais ser abandonada.');
+    }
+
+    return { message: 'Triagem abandonada e excluída com sucesso.' };
+  }
     /**
    * Salva na triagem o resultado produzido pela MarIA.
    *

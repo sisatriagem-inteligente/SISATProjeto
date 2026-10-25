@@ -8,7 +8,7 @@ import {
     obterMensagemErro,
     obterUsuario
 } from '../../services/api';
-import { criarTriagem } from '../../services/triagensApi';
+import { buscarTriagemPorId, criarTriagem } from '../../services/triagensApi';
 
 export default function Navbar(){
     
@@ -133,17 +133,28 @@ export default function Navbar(){
             return;
         }
 
-        const triagemAtiva = localStorage.getItem('triagem_ativa_id');
-
-        if (triagemAtiva) {
-            navigate(`/chatbot/${triagemAtiva}`);
-            return;
-        }
-
         setIniciandoTriagem(true);
         setErroTriagem('');
 
         try {
+            const triagemAtiva = localStorage.getItem('triagem_ativa_id');
+            if (triagemAtiva) {
+                const { data } = await buscarTriagemPorId(triagemAtiva);
+                if (data.triagem.paciente_id !== usuario.id) {
+                    localStorage.removeItem('triagem_ativa_id');
+                    setErroTriagem('A referência local da triagem não pertence a esta conta.');
+                    return;
+                }
+                if (data.triagem.status === 'Concluida') {
+                    localStorage.removeItem('triagem_ativa_id');
+                } else if (data.triagem.chat_finalizado) {
+                    setErroTriagem('Esta triagem não está disponível para continuar a conversa.');
+                    return;
+                } else {
+                    navigate(`/chatbot/${triagemAtiva}`);
+                    return;
+                }
+            }
             const resposta = await criarTriagem(usuario.id);
             const triagemId = resposta.data.triagem.id;
 

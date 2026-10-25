@@ -5,7 +5,7 @@ import MarIA from '../../../assets/img/MarIA.png';
 import ModalTriagemConcluida from '../../../components/ModalTriagemConcluida/ModalTriagemConcluida';
 
 import { obterMensagemErro } from '../../../services/api';
-import { enviarMensagemMaria } from '../../../services/triagensApi';
+import { abandonarTriagem as excluirTriagem, enviarMensagemMaria } from '../../../services/triagensApi';
 
 interface Mensagem {
     id: number;
@@ -29,6 +29,8 @@ export default function Chatbot() {
 
     //estado para impedir envios duplicados 
     const [enviando, setEnviando] = useState(false);
+    const [abandonando, setAbandonando] = useState(false);
+    const [erroAbandono, setErroAbandono] = useState('');
 
     //mensagem de erro da comunicação com a API
     const [erro, setErro] = useState('');
@@ -44,19 +46,6 @@ export default function Chatbot() {
 
     const [texto, setTexto] = useState('');
 
-/*
- * INTEGRAÇÃO CODEX — ENVIO REAL E MODO DE DEMONSTRAÇÃO
- *
- * Esta função envia mensagens ao BFF por meio de
- * enviarMensagemMaria().
- *
- * Garantir que o modo de demonstração não faça essa chamada.
- * Caso exista uma simulação local da conversa, mantê-la separada
- * das requisições reais e dos registros do backend.
- *
- * No fluxo real, confirmar o contrato da resposta e preservar
- * o tratamento de erros e a prevenção de envios duplicados.
- */
     async function enviarMensagem() {
 
         if (texto.trim() === '' || enviando || mostrarTriagemConcluida || !triagemId) {
@@ -102,27 +91,7 @@ export default function Chatbot() {
             * A finalização da triagem depende somente do campo "finalizada" retornado pela API*/
 
 
-            /*
-            * INTEGRAÇÃO CODEX — FIM DA COLETA DA MARIA
-            *
-            * O campo finalizada indica que a coleta da MarIA terminou.
-            * Ele não comprova que o atendimento médico foi concluído
-            * nem que o backend liberou uma nova triagem para o paciente.
-            *
-            * Revisar a remoção de triagem_ativa_id abaixo: apagar essa
-            * referência somente porque a MarIA terminou pode deixar
-            * o frontend sem o ID de uma triagem que continua pendente.
-            *
-            * Pelo comportamento informado anteriormente, uma nova
-            * tentativa de criação pode retornar HTTP 409 enquanto
-            * a triagem anterior estiver Aguardando.
-            *
-            * Confirmar o fluxo e os recursos disponíveis no BFF integrado
-            * antes de alterar a persistência do ID. Não inventar endpoints
-            * para localizar ou retomar a triagem.
-            */
             if (resposta.data.finalizada === true) {
-                localStorage.removeItem('triagem_ativa_id');
                 setMostrarTriagemConcluida(true);
             }
 
@@ -138,6 +107,7 @@ export default function Chatbot() {
     }
 
     function abrirConfirmacao() {
+        setErroAbandono('');
         setMostrarConfirmacao(true);
     }
 
@@ -146,22 +116,22 @@ export default function Chatbot() {
     }
 
 
-    /*
-    * INTEGRAÇÃO CODEX — SAÍDA DA CONVERSA
-    *
-    * Atualmente, esta função apenas navega para /inicioPaciente.
-    * Ela não chama o backend para cancelar ou excluir a triagem,
-    * nem comprova que os registros foram apagados.
-    *
-    * Confirmar se existe uma operação real de abandono no BFF.
-    * Se não existir, não simular um cancelamento no frontend
-    * nem afirmar que o histórico foi excluído.
-    *
-    * Preservar a distinção entre sair da tela, interromper a coleta
-    * da IA e cancelar ou concluir uma triagem no backend.
-    */
-    function abandonarTriagem() {
-        navigate('/inicioPaciente');
+    async function abandonarTriagem() {
+        if (!triagemId || enviando || abandonando || mostrarTriagemConcluida) return;
+
+        setAbandonando(true);
+        setErroAbandono('');
+        try {
+            await excluirTriagem(triagemId);
+            if (localStorage.getItem('triagem_ativa_id') === triagemId) {
+                localStorage.removeItem('triagem_ativa_id');
+            }
+            navigate('/inicioPaciente', { replace: true });
+        } catch (falha) {
+            setErroAbandono(obterMensagemErro(falha));
+        } finally {
+            setAbandonando(false);
+        }
     }
 
     return (
@@ -260,20 +230,23 @@ export default function Chatbot() {
                         <div className="confirmacao-modal">
 
                             <h2>Tem certeza que deseja abandonar a triagem?</h2>
-                            <p>Todo seu histórico será perdido.</p>
+                            <p>Ao desistir, esta triagem e as mensagens já enviadas serão excluídas permanentemente.</p>
+                            {erroAbandono && <p role="alert">{erroAbandono}</p>}
 
                             <div className="confirmacao-botoes">
                                 <button
                                     className="btn-sim"
                                     onClick={abandonarTriagem}
+                                    disabled={abandonando}
                                 >
-                                    Sim
+                                    {abandonando ? 'Excluindo...' : 'Sim, desistir'}
                                 </button>
                                 
                                 
                                 <button
                                     className="btn-ficar"
                                     onClick={fecharConfirmacao}
+                                    disabled={abandonando}
                                 >
                                     Ficar 
                                 </button>

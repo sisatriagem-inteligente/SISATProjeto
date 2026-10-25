@@ -4,11 +4,11 @@ import './CardAtendimento.css';
 interface CardAtendimentoProps {
     id: string;
     nome: string;
-    idade: number;
+    idade: number | null;
     sexo: string;
     data: string;
     sintomas: string;
-    prioridade: "vermelho" | "amarelo" | "verde";
+    prioridade: "vermelho" | "amarelo" | "verde" | null;
     onVerCompleto: () => void;
 }
 
@@ -23,10 +23,10 @@ function CardAtendimento({
 }: CardAtendimentoProps) {
 
     return (
-        <div className={`card-atendimento ${prioridade}`}>
+        <div className={`card-atendimento ${prioridade ?? ''}`}>
 
             <div
-                className={`card-prioridade ${prioridade}`}
+                className={`card-prioridade ${prioridade ?? ''}`}
                 aria-hidden="true"
             ></div>
 
@@ -39,7 +39,7 @@ function CardAtendimento({
                     <div className="card-atendimento-dados">
 
                         <span>
-                            <strong>idade:</strong> {idade}
+                            <strong>idade:</strong> {idade ?? 'Não informada'}
                         </span>
 
                         <span>

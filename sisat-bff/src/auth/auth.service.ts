@@ -16,6 +16,7 @@ import { Model } from 'mongoose';
 
 // Biblioteca responsável por gerar e comparar hashes de senha.
 import * as bcrypt from 'bcrypt';
+import { createHash, randomBytes } from 'node:crypto';
 
 // Schema e tipo do documento de paciente.
 import {
@@ -31,6 +32,14 @@ import {
 
 // DTO utilizado no cadastro do paciente.
 import { CadastroDto } from './dto/cadastro.dto';
+import { ValidateRecoveryAnswerDto } from './dto/validate-recovery-answer.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
+import { SetupRecoveryDto } from './dto/setup-recovery.dto';
+import { CompleteRecoverySetupDto } from './dto/complete-recovery-setup.dto';
+import {
+  normalizeRecoveryAnswer,
+  recoveryWordsAreStrong,
+} from './validators/recovery-words.validator';
 
 // DTO utilizado no login do paciente.
 import { LoginDto } from './dto/login.dto';
@@ -168,6 +177,26 @@ export class AuthService {
       10,
     );
 
+    const recoveryWords = [
+      data.recoveryWord1,
+      data.recoveryWord2,
+      data.recoveryWord3,
+    ];
+    const hasRecoveryWords = recoveryWords.some((word) => word !== undefined);
+    if (hasRecoveryWords && !recoveryWords.every((word) => typeof word === 'string')) {
+      throw new BadRequestException('Informe as três respostas de recuperação.');
+    }
+    if (hasRecoveryWords && !recoveryWordsAreStrong(recoveryWords as string[])) {
+      throw new BadRequestException('Escolha três respostas diferentes e menos previsíveis.');
+    }
+    const recoveryHashes = hasRecoveryWords
+      ? await Promise.all(
+          (recoveryWords as string[]).map((word) =>
+            bcrypt.hash(normalizeRecoveryAnswer(word), 10),
+          ),
+        )
+      : null;
+
     /*
      * Cria o documento do paciente na coleção "pacientes".
      *
@@ -178,8 +207,21 @@ export class AuthService {
       cpf,
       email,
       senha: hashedPassword,
+      ...(recoveryHashes && {
+        recoveryWord1Hash: recoveryHashes[0],
+        recoveryWord2Hash: recoveryHashes[1],
+        recoveryWord3Hash: recoveryHashes[2],
+      }),
     });
 
+    // A autorização serve apenas para configurar as respostas logo após
+    // o cadastro; não é um token de login e expira em dez minutos.
+    const setupToken = recoveryHashes
+      ? undefined
+      : await this.jwtService.signAsync(
+          { sub: String(patient._id), purpose: 'setup_recovery' },
+          { expiresIn: '10m' },
+        );
     
     return {
       message: 'Cadastro do paciente realizado com sucesso.',
@@ -188,7 +230,179 @@ export class AuthService {
         cpf: patient.cpf,
         email: patient.email,
       },
+      ...(setupToken && { setup_token: setupToken }),
     };
+  }
+
+  /** Configura as respostas na segunda etapa do cadastro, sem reenviar a senha. */
+  async completeRecoverySetup(data: CompleteRecoverySetupDto) {
+    let payload: { sub?: string; purpose?: string };
+    try {
+      payload = await this.jwtService.verifyAsync(data.setupToken);
+    } catch {
+      throw new UnauthorizedException('Autorização de cadastro inválida ou expirada.');
+    }
+    if (!payload.sub || payload.purpose !== 'setup_recovery') {
+      throw new UnauthorizedException('Autorização de cadastro inválida ou expirada.');
+    }
+
+    const words = [data.recoveryWord1, data.recoveryWord2, data.recoveryWord3];
+    if (!recoveryWordsAreStrong(words)) {
+      throw new BadRequestException('Escolha três respostas diferentes e menos previsíveis.');
+    }
+    const hashes = await Promise.all(
+      words.map((word) => bcrypt.hash(normalizeRecoveryAnswer(word), 10)),
+    );
+    const result = await this.patientModel.updateOne(
+      {
+        _id: payload.sub,
+        recoveryWord1Hash: { $exists: false },
+        recoveryWord2Hash: { $exists: false },
+        recoveryWord3Hash: { $exists: false },
+      },
+      {
+        $set: {
+          recoveryWord1Hash: hashes[0],
+          recoveryWord2Hash: hashes[1],
+          recoveryWord3Hash: hashes[2],
+          recoveryFailedAttempts: 0,
+        },
+      },
+    ).exec();
+    if (result.matchedCount !== 1) {
+      throw new UnauthorizedException('Autorização de cadastro já utilizada ou inválida.');
+    }
+    return { message: 'Respostas de recuperação configuradas com sucesso.' };
+  }
+
+  /** Configura ou troca as palavras mediante CPF e senha atual. */
+  async setupRecovery(data: SetupRecoveryDto) {
+    const patient = await this.patientModel.findOne({ cpf: data.cpf }).exec();
+    const validPassword = patient
+      ? await bcrypt.compare(data.currentPassword, patient.senha)
+      : false;
+    if (!patient || !validPassword) {
+      throw new UnauthorizedException('CPF ou senha incorretos.');
+    }
+
+    const words = [data.recoveryWord1, data.recoveryWord2, data.recoveryWord3];
+    if (!recoveryWordsAreStrong(words)) {
+      throw new BadRequestException('Escolha três respostas diferentes e menos previsíveis.');
+    }
+    const hashes = await Promise.all(
+      words.map((word) => bcrypt.hash(normalizeRecoveryAnswer(word), 10)),
+    );
+    await this.patientModel.updateOne(
+      { _id: patient._id },
+      {
+        $set: {
+          recoveryWord1Hash: hashes[0],
+          recoveryWord2Hash: hashes[1],
+          recoveryWord3Hash: hashes[2],
+          recoveryFailedAttempts: 0,
+        },
+        $unset: {
+          recoveryBlockedUntil: '',
+          recoveryResetTokenHash: '',
+          recoveryResetExpiresAt: '',
+        },
+      },
+    ).exec();
+    return { message: 'Palavras de recuperação configuradas com sucesso.' };
+  }
+
+  /** Confere uma resposta e emite uma autorização curta de redefinição. */
+  async validateRecoveryAnswer(data: ValidateRecoveryAnswerDto) {
+    const invalid = 'Não foi possível recuperar a senha com os dados informados.';
+    const patient = await this.patientModel.findOne({ cpf: data.cpf }).exec();
+    if (
+      !patient?.recoveryWord1Hash ||
+      !patient.recoveryWord2Hash ||
+      !patient.recoveryWord3Hash ||
+      (patient.recoveryBlockedUntil && patient.recoveryBlockedUntil > new Date())
+    ) {
+      throw new UnauthorizedException(invalid);
+    }
+
+    const hashes = [
+      patient.recoveryWord1Hash,
+      patient.recoveryWord2Hash,
+      patient.recoveryWord3Hash,
+    ];
+    const normalized = normalizeRecoveryAnswer(data.answer);
+    const matches = await Promise.all(
+      hashes.map(async (hash) => {
+        return (
+          (await bcrypt.compare(normalized, hash)) ||
+          // Mantém compatibilidade com hashes criados antes da normalização.
+          (normalized !== data.answer && (await bcrypt.compare(data.answer, hash)))
+        );
+      }),
+    );
+    if (!matches.some(Boolean)) {
+      const previousAttempts =
+        patient.recoveryBlockedUntil && patient.recoveryBlockedUntil <= new Date()
+          ? 0
+          : (patient.recoveryFailedAttempts ?? 0);
+      const attempts = previousAttempts + 1;
+      await this.patientModel.updateOne(
+        { _id: patient._id },
+        {
+          $set: {
+            recoveryFailedAttempts: attempts,
+            ...(attempts >= 5 && {
+              recoveryBlockedUntil: new Date(Date.now() + 15 * 60 * 1000),
+            }),
+          },
+        },
+      ).exec();
+      throw new UnauthorizedException(invalid);
+    }
+
+    const resetToken = randomBytes(32).toString('base64url');
+    const resetTokenHash = createHash('sha256').update(resetToken).digest('hex');
+    await this.patientModel.updateOne(
+      { _id: patient._id },
+      {
+        $set: {
+          recoveryResetTokenHash: resetTokenHash,
+          recoveryResetExpiresAt: new Date(Date.now() + 10 * 60 * 1000),
+          recoveryFailedAttempts: 0,
+        },
+        $unset: { recoveryBlockedUntil: '' },
+      },
+    ).exec();
+    return { reset_token: resetToken, expires_in_seconds: 600 };
+  }
+
+  /** Consome a autorização uma única vez ao salvar a nova senha. */
+  async resetPassword(data: ResetPasswordDto) {
+    const invalid = 'Autorização de recuperação inválida ou expirada.';
+    const tokenHash = createHash('sha256').update(data.resetToken).digest('hex');
+    const now = new Date();
+    const hashedPassword = await bcrypt.hash(data.newPassword, 10);
+    const result = await this.patientModel.updateOne(
+      {
+        recoveryResetTokenHash: tokenHash,
+        recoveryResetExpiresAt: { $gt: now },
+        $or: [
+          { recoveryBlockedUntil: { $exists: false } },
+          { recoveryBlockedUntil: { $lte: now } },
+        ],
+      },
+      {
+        $set: { senha: hashedPassword, recoveryFailedAttempts: 0 },
+        $unset: {
+          recoveryResetTokenHash: '',
+          recoveryResetExpiresAt: '',
+          recoveryBlockedUntil: '',
+        },
+      },
+    ).exec();
+    if (result.matchedCount !== 1) {
+      throw new UnauthorizedException(invalid);
+    }
+    return { message: 'Senha redefinida com sucesso. Faça login novamente.' };
   }
 
   /*

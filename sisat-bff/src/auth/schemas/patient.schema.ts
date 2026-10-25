@@ -72,6 +72,19 @@ export class Patient {
     required: true,
   })
   senha!: string;
+
+  /** Hashes das três palavras de recuperação, ausentes em contas antigas. */
+  @Prop() recoveryWord1Hash?: string;
+  @Prop() recoveryWord2Hash?: string;
+  @Prop() recoveryWord3Hash?: string;
+
+  /** Controle persistente de tentativas de recuperação. */
+  @Prop({ default: 0 }) recoveryFailedAttempts?: number;
+  @Prop() recoveryBlockedUntil?: Date;
+
+  /** Autorização temporária de redefinição: apenas o hash é armazenado. */
+  @Prop() recoveryResetTokenHash?: string;
+  @Prop() recoveryResetExpiresAt?: Date;
 }
 
 /**
@@ -83,8 +96,3 @@ export class Patient {
  */
 export const PatientSchema =
   SchemaFactory.createForClass(Patient);
-
-
-
-
- 

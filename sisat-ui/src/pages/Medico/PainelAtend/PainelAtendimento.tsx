@@ -78,11 +78,11 @@ function PainelAtendimento() {
                         key={triagem.id}
                         id={triagem.id}
                         nome={triagem.paciente.nome ?? 'Não informado'}
-                        idade={triagem.paciente.idade ?? 0}
+                        idade={triagem.paciente.idade}
                         sexo={triagem.paciente.sexo ?? 'Não informado'}
                         data={new Date(triagem.data_hora_entrada).toLocaleDateString('pt-BR')}
                         sintomas={triagem.sintomas.join(', ') || triagem.queixa_principal || 'Não informado'}
-                        prioridade={triagem.cor_classificacao ?? 'verde'}
+                        prioridade={triagem.cor_classificacao}
                         onVerCompleto={() =>
                             abrirAtendimento(triagem.id)
                         }

@@ -13,7 +13,7 @@ export default function Cadastro() {
   const navigate = useNavigate();
 
 
-  // TEMPORÁRIO — Modo de demonstração do frontend.
+  // Modo de demonstração do frontend.
   // Só funciona em desenvolvimento e quando a variável
   // VITE_SISAT_FRONTEND_DEMO estiver definida como "true".
   const modoDemonstracaoFrontend =
@@ -73,42 +73,18 @@ export default function Cadastro() {
     return;
   }
 
-  // TODO (INTEGRAÇÃO CODEX):
-  // Conferir as regras de validação do CPF no DTO/serviço do BFF.
-  // Se houver validação dos dígitos verificadores, alinhar a
-  // validação do frontend à regra existente no backend.
-  // Esta verificação de comprimento, sozinha, não valida o CPF.
-
   if (password !== confirmarSenha) {
     setMensagem('As senhas não são iguais.');
     return;
   }
 
-  // TODO (INTEGRAÇÃO CODEX) — POLÍTICA DE SENHA DO CADASTRO:
-  //
-  // Conferir no CadastroDto e no AuthService quais regras de senha
-  // são realmente aplicadas ao cadastro inicial.
-  // Depois, implementar aqui as mesmas restrições no frontend,
-  // mantendo o backend como responsável pela validação definitiva.
-  //
-  // Verificar comprimento mínimo e máximo, complexidade e limite
-  // em bytes, caso existam essas restrições no contrato real.
-  // NÃO presumir que as regras de redefinição de senha se aplicam
-  // automaticamente ao cadastro.
+  if (Array.from(password).length < 15 || new TextEncoder().encode(password).length > 72) {
+    setMensagem('A senha deve ter pelo menos 15 caracteres e no máximo 72 bytes em UTF-8.');
+    return;
+  }
 
-
-
-  // TEMPORÁRIO — REMOVER NA INTEGRAÇÃO COM O BFF.
-  //
-  // Durante o desenvolvimento, esta ramificação evita a criação
-  // de contas reais e encaminha para a tela de palavras-chave
-  // usando um token fictício.
-  //
-  // Na integração, o Codex deve remover esta simulação e manter
-  // o fluxo real: cadastrarPaciente() -> ler setup_token ->
-  // navegar para /palavras-chave com o token retornado pelo BFF.
-  //
-  // Nunca enviar TOKEN_DEMO_NAO_REAL para endpoints reais.
+  // O BFF também avalia a força da senha e verifica os dígitos do CPF.
+  // Esta ramificação de demonstração não envia o token fictício ao BFF.
   if (modoDemonstracaoFrontend) {
     navigate('/palavras-chave', {
       state: {

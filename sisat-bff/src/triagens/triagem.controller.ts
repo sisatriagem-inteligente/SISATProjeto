@@ -1,10 +1,13 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Patch,
   Post,
+  Req,
+  UseGuards,
 } from '@nestjs/common';
 
 import { CriarTriagemDto } from './dto/criar-triagem.dto';
@@ -12,6 +15,7 @@ import { TriagensService } from './triagem.service';
 import { ResultadoMariaDto } from './dto/resultado-maria.dto';
 import { IniciarAtendimentoDto } from './dto/iniciar-atendimento.dto';
 import { InformacoesMedicasDto } from './dto/informacoes-medicas.dto';
+import { PacienteTriagemGuard, type RequisicaoPaciente } from './paciente-triagem.guard';
 
 
 /**
@@ -66,6 +70,16 @@ export class TriagensController {
         status: triagem.status,
       },
     };
+  }
+
+  /** Exclui somente a triagem do próprio paciente ainda em coleta. */
+  @UseGuards(PacienteTriagemGuard)
+  @Delete(':id')
+  async abandonarTriagem(
+    @Param('id') id: string,
+    @Req() request: RequisicaoPaciente,
+  ) {
+    return this.triagensService.abandonarTriagem(id, request.pacienteId!);
   }
 
    /**

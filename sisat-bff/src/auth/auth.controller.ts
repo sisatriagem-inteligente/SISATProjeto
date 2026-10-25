@@ -2,6 +2,7 @@
 import {
   Body,
   Controller,
+  Get,
   HttpCode,
   HttpStatus,
   Post,
@@ -18,6 +19,11 @@ import { LoginDto } from './dto/login.dto';
 
 // DTO do login do médico.
 import { LoginMedicoDto } from './dto/login-medico.dto';
+import { ValidateRecoveryAnswerDto } from './dto/validate-recovery-answer.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
+import { SetupRecoveryDto } from './dto/setup-recovery.dto';
+import { CompleteRecoverySetupDto } from './dto/complete-recovery-setup.dto';
+import { RECOVERY_QUESTIONS } from './recovery-questions';
 
 /*
  * Define o prefixo de todas as rotas deste controller.
@@ -34,6 +40,11 @@ export class AuthController {
   constructor(
     private readonly authService: AuthService,
   ) {}
+
+  @Get('paciente/perguntas-recuperacao')
+  obterPerguntasRecuperacao() {
+    return { questions: RECOVERY_QUESTIONS };
+  }
 
   /*
    * Cadastro público de pacientes.
@@ -58,6 +69,30 @@ export class AuthController {
      * Encaminha os dados já validados para o service.
      */
     return this.authService.register(cadastroDto);
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Post('paciente/concluir-cadastro')
+  concluirCadastro(@Body() dto: CompleteRecoverySetupDto) {
+    return this.authService.completeRecoverySetup(dto);
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Post('paciente/configurar-recuperacao')
+  configurarRecuperacao(@Body() dto: SetupRecoveryDto) {
+    return this.authService.setupRecovery(dto);
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Post('paciente/validar-resposta-recuperacao')
+  validarRespostaRecuperacao(@Body() dto: ValidateRecoveryAnswerDto) {
+    return this.authService.validateRecoveryAnswer(dto);
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Post('paciente/redefinir-senha')
+  redefinirSenha(@Body() dto: ResetPasswordDto) {
+    return this.authService.resetPassword(dto);
   }
 
   /*

@@ -17,6 +17,7 @@ export default function CardHistorico({
     
     const classeStatus ={
         "Em andamento":"em-andamento",
+        "Aguardando atendimento":"em-andamento",
         "Concluído":"concluido"
     }[status];
 

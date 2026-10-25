@@ -6,7 +6,14 @@ import {
   Length,
   Matches,
   MinLength,
+  IsOptional,
 } from 'class-validator';
+import { IsCpf } from '../validators/is-cpf.validator';
+import {
+  IsStrongPassword,
+  MaxPasswordBytes,
+} from '../validators/password-strength.validator';
+import { IsRecoveryWord } from '../validators/recovery-words.validator';
 
 /**
  * Define e valida os dados recebidos no cadastro
@@ -20,7 +27,8 @@ export class CadastroDto {
    * CPF do paciente.
    *
    * Deve ser enviado como texto, conter exatamente
-   * 11 caracteres e possuir apenas números.
+   * 11 caracteres, possuir apenas números e dígitos
+   * verificadores válidos.
    *
    * O CPF deve chegar ao backend sem máscara.
    */
@@ -42,6 +50,7 @@ export class CadastroDto {
   @Matches(/^\d{11}$/, {
     message: 'O CPF deve conter apenas números.',
   })
+  @IsCpf()
   cpf!: string;
 
   /**
@@ -66,7 +75,8 @@ export class CadastroDto {
    /**
    * Senha informada durante o cadastro.
    *
-   * Deve possuir pelo menos seis caracteres.
+   * Deve possuir pelo menos quinze caracteres e
+   * apresentar força suficiente para o cadastro.
    * Antes de ser salva no banco, essa senha é
    * transformada em hash pelo AuthService.
    */
@@ -80,10 +90,26 @@ export class CadastroDto {
   })
 
  
-  @MinLength(6, {
-    message: 'A senha deve ter no mínimo 6 caracteres.',
+  @MinLength(15, {
+    message: 'A senha deve ter no mínimo 15 caracteres.',
   })
+  @MaxPasswordBytes()
+  @IsStrongPassword()
   password!: string;
+
+  // O cadastro em duas etapas envia as respostas depois; se alguma for
+  // enviada aqui, o service exige que as três sejam informadas juntas.
+  @IsOptional()
+  @IsRecoveryWord()
+  recoveryWord1?: string;
+
+  @IsOptional()
+  @IsRecoveryWord()
+  recoveryWord2?: string;
+
+  @IsOptional()
+  @IsRecoveryWord()
+  recoveryWord3?: string;
 }
 
 /**

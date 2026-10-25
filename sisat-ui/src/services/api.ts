@@ -17,6 +17,13 @@ const api = axios.create({
     'http://localhost:3000',
 });
 
+// Em demonstração, telas que não têm simulação própria não podem tocar dados reais.
+if (import.meta.env.DEV && import.meta.env.VITE_SISAT_FRONTEND_DEMO === 'true') {
+  api.interceptors.request.use(() => {
+    throw new Error('Modo de demonstração: esta operação não será enviada ao servidor.');
+  });
+}
+
 
 /**
  * Representa os dados básicos do usuário autenticado
@@ -83,55 +90,22 @@ export interface RespostaConcluirCadastroPaciente {
 }
 
 
-/*
- * INTEGRAÇÃO CODEX — RECUPERAÇÃO DE SENHA
- *
- * O fluxo novo deverá utilizar duas operações separadas:
- *
- * 1. Validar uma resposta:
- *    - Enviar CPF e a resposta informada.
- *    - Receber o resultado da validação e a autorização temporária,
- *      conforme o contrato final do BFF.
- *
- * 2. Redefinir a senha:
- *    - Enviar a autorização temporária e a nova senha.
- *    - Receber a confirmação da redefinição.
- *
- * NA INTEGRAÇÃO:
- * - Conferir os DTOs, as rotas e as respostas no BFF atualizado.
- * - Criar interfaces TypeScript específicas para cada operação.
- * - Implementar as duas funções neste arquivo.
- * - Não considerar a validação visual do frontend como autorização.
- * - Não armazenar a autorização temporária no localStorage.
- *
- * Os nomes finais dos campos e dos endpoints devem seguir
- * o código efetivamente integrado ao BFF, sem presumir que
- * propostas anteriores sejam os contratos definitivos.
- */
-
-// LEGADO — NÃO UTILIZAR NO NOVO FLUXO DE RECUPERAÇÃO.
-//
-// Estas interfaces representam o contrato anterior, de uma única
-// operação com CPF, três respostas e nova senha.
-//
-// INTEGRAÇÃO CODEX:
-// 1. Procurar referências a DadosRecuperacaoSenha e
-//    RespostaRecuperacaoSenha em todo o frontend.
-// 2. Confirmar se ainda existem consumidores do contrato antigo.
-// 3. Remover estas interfaces se não houver mais uso ou substituí-las
-//    pelas interfaces correspondentes às novas operações do BFF.
-//
-// Não conectar RecuperarSenha.tsx a este contrato antigo.
-
-export interface DadosRecuperacaoSenha {
+export interface DadosValidarRespostaRecuperacao {
   cpf: string;
-  recoveryWord1: string;
-  recoveryWord2: string;
-  recoveryWord3: string;
+  answer: string;
+}
+
+export interface RespostaValidarRespostaRecuperacao {
+  reset_token: string;
+  expires_in_seconds: number;
+}
+
+export interface DadosRedefinirSenha {
+  resetToken: string;
   newPassword: string;
 }
 
-export interface RespostaRecuperacaoSenha {
+export interface RespostaRedefinirSenha {
   message: string;
 }
 
@@ -148,7 +122,7 @@ export interface RespostaCadastroPaciente {
     cpf: string;
     email: string;
   };
-  setup_token: string;
+  setup_token?: string;
 }
 
 /**
@@ -221,18 +195,7 @@ export function cadastrarPaciente(
  * Rota utilizada:
  * GET /auth/paciente/perguntas-recuperacao
  *
- * INTEGRAÇÃO CODEX:
- * - Preservar a rota e conferir o contrato no BFF atualizado.
- * - Confirmar que a resposta contém questions, com id e text.
- * - Atualizar as telas PalavrasChave.tsx e RecuperarSenha.tsx
- *   para usarem as perguntas retornadas pela API no fluxo real.
- * - Manter a constante de perguntas de demonstração apenas
- *   para o modo de demonstração, removendo seu uso como fonte
- *   de perguntas no fluxo real.
- *
- * A constante PERGUNTAS_RECUPERACAO_DEMO está nos componentes
- * apenas para desenvolvimento visual e deverá deixar de ser
- * a fonte das perguntas após a integração real.
+ * O modo de demonstração usa perguntas locais e não chama esta rota.
  */
 export function obterPerguntasRecuperacao() {
   return api.get<RespostaPerguntasRecuperacao>(
@@ -277,6 +240,24 @@ export function configurarRecuperacaoPaciente(
 ) {
   return api.post<RespostaConfigurarRecuperacao>(
     '/auth/paciente/configurar-recuperacao',
+    dados,
+  );
+}
+
+/** Confere uma resposta contra os três hashes cadastrados. */
+export function validarRespostaRecuperacao(
+  dados: DadosValidarRespostaRecuperacao,
+) {
+  return api.post<RespostaValidarRespostaRecuperacao>(
+    '/auth/paciente/validar-resposta-recuperacao',
+    dados,
+  );
+}
+
+/** Consome a autorização temporária para salvar a nova senha. */
+export function redefinirSenhaPaciente(dados: DadosRedefinirSenha) {
+  return api.post<RespostaRedefinirSenha>(
+    '/auth/paciente/redefinir-senha',
     dados,
   );
 }
@@ -356,6 +337,9 @@ export function obterUsuario(): UsuarioSISAT | null {
  * e erros inesperados.
  */
 export function obterMensagemErro(erro: unknown) {
+  if (erro instanceof Error && erro.message.startsWith('Modo de demonstração:')) {
+    return erro.message;
+  }
   if (axios.isAxiosError(erro)) {
     const mensagem = erro.response?.data?.message;
 
