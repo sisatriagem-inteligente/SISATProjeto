@@ -73,6 +73,12 @@ export class TriagensController {
   }
 
   /** Exclui somente a triagem do próprio paciente ainda em coleta. */
+  /**
+ * Recebe o pedido de abandono em DELETE /triagens/:id.
+ * O PacienteTriagemGuard exige um JWT de paciente e coloca
+ * seu identificador na requisição. O service verifica se a
+ * triagem pertence a ele e se ainda pode ser excluída.
+ */
   @UseGuards(PacienteTriagemGuard)
   @Delete(':id')
   async abandonarTriagem(

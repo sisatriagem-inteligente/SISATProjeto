@@ -1,6 +1,9 @@
 import * as bcrypt from 'bcrypt';
 import { AuthService } from './auth.service';
-
+/**
+ * Monta um paciente e um model simulado em memória para testar
+ * as regras de recuperação sem conectar ao MongoDB real.
+ */
 const answers = ['Carrinho Azul', 'Parque das Flores', 'Veterinária'];
 
 describe('cadastro em duas etapas', () => {

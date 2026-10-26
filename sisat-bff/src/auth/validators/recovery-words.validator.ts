@@ -1,6 +1,6 @@
 import { ValidateBy } from 'class-validator';
 import { classifyPassword } from './password-strength.validator';
-
+//verifica cada resposta individualmente — de 4 a 80 caracteres após remover espaços das extremidades e, no máximo, 72 bytes em UTF-8.
 export function IsRecoveryWord(): PropertyDecorator {
   return ValidateBy({
     name: 'isRecoveryWord',
@@ -19,7 +19,7 @@ export function IsRecoveryWord(): PropertyDecorator {
     },
   });
 }
-
+//padroniza a resposta removendo espaços extras e diferenças de acentuação e maiúsculas/minúsculas. Essa mesma normalização é usada antes de gerar o hash e ao conferir uma resposta.
 export function normalizeRecoveryAnswer(answer: string): string {
   return answer
     .trim()
@@ -28,7 +28,7 @@ export function normalizeRecoveryAnswer(answer: string): string {
     .replace(/[\u0300-\u036f]/gu, '')
     .toLocaleLowerCase('pt-BR');
 }
-
+//exige três respostas diferentes após a normalização e avalia a força das três em conjunto usando zxcvbn-ts.
 export function recoveryWordsAreStrong(words: string[]): boolean {
   if (
     new Set(words.map(normalizeRecoveryAnswer)).size !== 3

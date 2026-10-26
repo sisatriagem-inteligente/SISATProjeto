@@ -83,6 +83,7 @@ export class Patient {
   @Prop() recoveryBlockedUntil?: Date;
 
   /** Autorização temporária de redefinição: apenas o hash é armazenado. */
+  //são campos temporários criados quando uma resposta é validada. O token original é enviado ao frontend; somente seu hash e a validade ficam no banco, e ambos são removidos após redefinir a senha.
   @Prop() recoveryResetTokenHash?: string;
   @Prop() recoveryResetExpiresAt?: Date;
 }

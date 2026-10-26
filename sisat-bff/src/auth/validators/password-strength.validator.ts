@@ -3,6 +3,8 @@ import { zxcvbn, zxcvbnOptions } from '@zxcvbn-ts/core';
 import * as commonLanguage from '@zxcvbn-ts/language-common';
 import * as portugueseLanguage from '@zxcvbn-ts/language-pt-br';
 
+
+//configura os dicionários e as mensagens em português usados na avaliação da senha.
 zxcvbnOptions.setOptions({
   translations: portugueseLanguage.translations,
   graphs: commonLanguage.adjacencyGraphs,
@@ -14,6 +16,8 @@ zxcvbnOptions.setOptions({
 
 export type PasswordStrength = 'fraca' | 'moderada' | 'forte';
 
+
+//transforma a pontuação do zxcvbn-ts em três categorias: fraca, moderada e forte.
 export function classifyPassword(password: string): PasswordStrength {
   const score = zxcvbn(password).score;
 
@@ -22,12 +26,14 @@ export function classifyPassword(password: string): PasswordStrength {
   return 'forte';
 }
 
+
 export function IsStrongPassword(): PropertyDecorator {
   return ValidateBy({
     name: 'isStrongPassword',
     validator: {
       validate(value: unknown): boolean {
         if (typeof value !== 'string') return false;
+        //o return true não aceita sozinho uma senha curta ou acima de 72 bytes. Ele apenas deixa essas falhas para os validadores específicos (@MinLength e @MaxPasswordBytes), evitando uma mensagem de força adicional para o mesmo problema.
         if (value.length < 15 || Buffer.byteLength(value, 'utf8') > 72) {
           return true;
         }
@@ -44,6 +50,7 @@ export function IsStrongPassword(): PropertyDecorator {
   });
 }
 
+//mede o tamanho em bytes UTF-8, não em quantidade de caracteres, para respeitar o limite de 72 bytes do bcrypt.
 export function MaxPasswordBytes(): PropertyDecorator {
   return ValidateBy({
     name: 'maxPasswordBytes',

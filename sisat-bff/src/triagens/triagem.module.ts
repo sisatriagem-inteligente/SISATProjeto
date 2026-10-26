@@ -66,10 +66,10 @@ import { PacienteTriagemGuard } from './paciente-triagem.guard';
    */
   controllers: [TriagensController],
 
-   /**
-   * Service que contém as regras
-   * de negócio das triagens.
-   */
+ /**
+ * Disponibiliza o service das regras de triagem e o guard
+ * usado para validar o JWT na rota de abandono.
+ */
   providers: [TriagensService, PacienteTriagemGuard],
 
   /**

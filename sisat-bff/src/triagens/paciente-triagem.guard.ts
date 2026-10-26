@@ -13,7 +13,7 @@ import { UserRole } from '../auth/enums/user-role.enum';
 
 export type RequisicaoPaciente = Request & { pacienteId?: string };
 
-/** Valida o JWT apenas na operação de abandono da própria triagem. */
+/** Valida o JWT e o perfil de paciente na rota de abandono da triagem. */
 @Injectable()
 export class PacienteTriagemGuard implements CanActivate {
   constructor(private readonly jwtService: JwtService) {}

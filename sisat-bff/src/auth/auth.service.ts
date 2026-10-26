@@ -176,7 +176,7 @@ export class AuthService {
       data.password,
       10,
     );
-
+//o cadastro aceita as três respostas juntas ou nenhuma, pois elas também podem ser configuradas na segunda etapa.
     const recoveryWords = [
       data.recoveryWord1,
       data.recoveryWord2,
@@ -189,6 +189,8 @@ export class AuthService {
     if (hasRecoveryWords && !recoveryWordsAreStrong(recoveryWords as string[])) {
       throw new BadRequestException('Escolha três respostas diferentes e menos previsíveis.');
     }
+
+    //as respostas são normalizadas e transformadas em hashes com bcrypt; os textos originais não são salvos.
     const recoveryHashes = hasRecoveryWords
       ? await Promise.all(
           (recoveryWords as string[]).map((word) =>
@@ -312,6 +314,8 @@ export class AuthService {
   }
 
   /** Confere uma resposta e emite uma autorização curta de redefinição. */
+  //uma resposta correta entre as três basta para gerar o token temporário.
+  //cinco tentativas erradas bloqueiam por cinco minutos
   async validateRecoveryAnswer(data: ValidateRecoveryAnswerDto) {
     const invalid = 'Não foi possível recuperar a senha com os dados informados.';
     const patient = await this.patientModel.findOne({ cpf: data.cpf }).exec();
@@ -376,6 +380,7 @@ export class AuthService {
   }
 
   /** Consome a autorização uma única vez ao salvar a nova senha. */
+  //método procura o hash do token de redefinição, verifica a validade, troca o hash da senha e remove os campos do token na mesma atualização. Isso torna a autorização de uso único.
   async resetPassword(data: ResetPasswordDto) {
     const invalid = 'Autorização de recuperação inválida ou expirada.';
     const tokenHash = createHash('sha256').update(data.resetToken).digest('hex');

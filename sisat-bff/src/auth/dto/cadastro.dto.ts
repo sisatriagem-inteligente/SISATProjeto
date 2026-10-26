@@ -80,6 +80,8 @@ export class CadastroDto {
    * Antes de ser salva no banco, essa senha é
    * transformada em hash pelo AuthService.
    */
+
+   //há três validadores: tamanho mínimo, limite em bytes e força.
   @IsNotEmpty({
     message: 'A senha é obrigatória.',
   })

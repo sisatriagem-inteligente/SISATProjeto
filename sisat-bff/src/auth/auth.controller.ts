@@ -40,7 +40,7 @@ export class AuthController {
   constructor(
     private readonly authService: AuthService,
   ) {}
-
+//a rota devolve as três perguntas fixas na ordem usada no cadastro
   @Get('paciente/perguntas-recuperacao')
   obterPerguntasRecuperacao() {
     return { questions: RECOVERY_QUESTIONS };
@@ -55,6 +55,7 @@ export class AuthController {
    * Como esta rota cria um novo recurso, o NestJS
    * responde por padrão com HTTP 201 Created.
    */
+  //as respostas de recuperação poder sem configuradas na etapa seguinte
   @Post('paciente/cadastro')
   cadastrarPaciente(
     /*
@@ -70,25 +71,25 @@ export class AuthController {
      */
     return this.authService.register(cadastroDto);
   }
-
+//a rota recebe o setup token e as três respostas para concluir a configuração inicial
   @HttpCode(HttpStatus.OK)
   @Post('paciente/concluir-cadastro')
   concluirCadastro(@Body() dto: CompleteRecoverySetupDto) {
     return this.authService.completeRecoverySetup(dto);
   }
-
+//essa é a alternativa para configurar ou substituir as respostas usando CPF e senha atual.
   @HttpCode(HttpStatus.OK)
   @Post('paciente/configurar-recuperacao')
   configurarRecuperacao(@Body() dto: SetupRecoveryDto) {
     return this.authService.setupRecovery(dto);
   }
-
+//confere uma resposta e devolve uma autorização temporária
   @HttpCode(HttpStatus.OK)
   @Post('paciente/validar-resposta-recuperacao')
   validarRespostaRecuperacao(@Body() dto: ValidateRecoveryAnswerDto) {
     return this.authService.validateRecoveryAnswer(dto);
   }
-
+//usa essa autorização para salvar a nova senha.
   @HttpCode(HttpStatus.OK)
   @Post('paciente/redefinir-senha')
   redefinirSenha(@Body() dto: ResetPasswordDto) {

@@ -186,7 +186,9 @@ export class TriagensService {
     if (!Types.ObjectId.isValid(triagemId)) {
       throw new BadRequestException('O ID da triagem informado é inválido.');
     }
-
+// A busca e a exclusão ocorrem na mesma operação. O filtro exige
+// que a triagem pertença ao paciente autenticado, ainda esteja
+// aguardando e não tenha conversa finalizada nem atendimento iniciado.
     const removida = await this.triagemModel.findOneAndDelete({
       _id: new Types.ObjectId(triagemId),
       paciente_id: new Types.ObjectId(pacienteId),
@@ -197,6 +199,8 @@ export class TriagensService {
       cor_classificacao: null,
     }).exec();
 
+// Diferencia uma triagem inexistente ou de outro paciente de uma
+// triagem existente que já não pode ser abandonada.
     if (!removida) {
       const existente = await this.triagemModel.findById(triagemId).exec();
       if (!existente || String(existente.paciente_id) !== pacienteId) {
