@@ -1,12 +1,16 @@
-# Converte a resposta da MarIA para o formato final esperado pelo SISAT.
-from app.cognitive_layer.schemas import RespostaFinal
+# Configura a saída estruturada dos resultados clínicos da MarIA.
+from app.cognitive_layer.schemas import ResultadoClinico
 from app.cognitive_layer.mar_ia_agent import llm
 
-# Configura o modelo para gerar a resposta seguindo o schema oficial
-# do resultado final da triagem.
-structured_llm = llm.with_structured_output(RespostaFinal)
 
-# Recebe o histórico da conversa e gera o resultado final estruturado.
-def gerar_resposta_estruturada(messages) -> RespostaFinal:
-    resposta_estruturada: RespostaFinal = structured_llm.invoke(messages)
-    return resposta_estruturada
+# Configura a saída do modelo conforme o schema ResultadoClinico,
+# que reúne o resumo e a lista de hipóteses
+# Esta configuração não executa uma chamada ao Ollama
+structured_clinical_llm = llm.with_structured_output(ResultadoClinico)
+
+
+def gerar_resultado_clinico(messages) -> ResultadoClinico:
+    # Executa a geração com as mensagens preparadas pelo nó gerar_resumo
+    # A integração interpreta e valida a saída conforme o modelo Pydantic
+    resposta: ResultadoClinico = structured_clinical_llm.invoke(messages)
+    return resposta

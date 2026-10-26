@@ -1,23 +1,49 @@
-from typing import TypedDict # Define a estrutura e os tipos do estado do grafo.
 
-from langchain_core.messages import BaseMessage # Representa as mensagens da conversa.
+from typing import TypedDict
 
-from app.cognitive_layer.schemas import ( #utilizando o schema, classes que já foram criadas
+from langchain_core.messages import BaseMessage  # Representa as mensagens do histórico da conversa.
+
+from app.cognitive_layer.schemas import (  # Importa os modelos usados para estruturar os dados.
+    DadosColetaChat,
     DadosPaciente,
     DadosTriagem,
     ResumoTriagem,
     HipoteseClinica,
+    RespostaFinal,
 )
-# Define as informações compartilhadas entre as etapas do grafo.
-# Funciona como o estado atual da conversa durante o processamento.
+
+
+# Descreve as chaves e os tipos esperados no estado compartilhado do grafo
+# TypedDict fornece informações de tipagem; não executa validação como Pydantic
+# Na execução atual, o estado começa com messages e recebe os demais campos
+# conforme os nós retornam suas atualizações
 class ConversationState(TypedDict):
-    # Histórico de mensagens utilizado pelas etapas do fluxo
+    # Histórico de mensagens utilizado pelas etapas do fluxo.
     messages: list[BaseMessage]
+
+    # Resultado da extração e conferência do histórico.
+    # Pode estar ausente no início ou receber None quando não disponível.
+    # Os nós seguintes reutilizam esse resultado, evitando nova extração dentro da mesma execução do grafo.
+    dados_extraidos: DadosColetaChat | None
+
+    # Dados básicos do paciente organizados para a ficha final.
     dados_paciente: DadosPaciente
+
+    # Informações da triagem organizadas para a ficha final.
     dados_triagem: DadosTriagem
+
+    # Resumo produzido a partir das informações da triagem.
     resumo_triagem: ResumoTriagem
+
+    # Lista de hipóteses clínicas iniciais produzidas pela MarIA.
     hipoteses_clinicas: list[HipoteseClinica]
-    # Campos que ainda precisam ser coletados durante a triagem.
+
+    # Lista dos campos que ainda precisam ser coletados ou preenchidos.
     campos_pendentes: list[str]
+
     # Indica se o processamento da triagem já foi finalizado.
     finalizado: bool
+
+    # Resultado completo da triagem, pronto para ser devolvido pelo controlador.
+    resposta_final: RespostaFinal | None
+
