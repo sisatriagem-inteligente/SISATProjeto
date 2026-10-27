@@ -26,7 +26,7 @@ export function classifyPassword(password: string): PasswordStrength {
   return 'forte';
 }
 
-
+//verificação senha forte
 export function IsStrongPassword(): PropertyDecorator {
   return ValidateBy({
     name: 'isStrongPassword',
@@ -49,6 +49,26 @@ export function IsStrongPassword(): PropertyDecorator {
     },
   });
 }
+//verificação caracteres
+export function HasRequiredPasswordCharacters(): PropertyDecorator {
+  return ValidateBy({
+    name: 'hasRequiredPasswordCharacters',
+    validator: {
+      validate(value: unknown): boolean {
+        if (typeof value !== 'string') return false;
+        return (
+          /[A-Z]/.test(value) &&
+          /[a-z]/.test(value) &&
+          /[0-9]/.test(value) &&
+          /[!-/:-@[-`{-~]/.test(value)
+        );
+      },
+      defaultMessage(): string {
+        return 'A senha deve conter pelo menos uma letra maiúscula, uma minúscula, um número e um símbolo.';
+      },
+    },
+  });
+}
 
 //mede o tamanho em bytes UTF-8, não em quantidade de caracteres, para respeitar o limite de 72 bytes do bcrypt.
 export function MaxPasswordBytes(): PropertyDecorator {
@@ -61,7 +81,7 @@ export function MaxPasswordBytes(): PropertyDecorator {
         );
       },
       defaultMessage(): string {
-        return 'A senha deve ter no máximo 72 bytes em UTF-8.';
+        return 'A senha ficou longa demais. Tente encurtá-la';
       },
     },
   });

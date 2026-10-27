@@ -10,6 +10,7 @@ import {
 } from 'class-validator';
 import { IsCpf } from '../validators/is-cpf.validator';
 import {
+  HasRequiredPasswordCharacters,
   IsStrongPassword,
   MaxPasswordBytes,
 } from '../validators/password-strength.validator';
@@ -96,6 +97,7 @@ export class CadastroDto {
     message: 'A senha deve ter no mínimo 15 caracteres.',
   })
   @MaxPasswordBytes()
+  @HasRequiredPasswordCharacters()
   @IsStrongPassword()
   password!: string;
 

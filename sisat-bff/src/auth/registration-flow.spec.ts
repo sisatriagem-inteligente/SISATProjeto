@@ -7,6 +7,36 @@ import { AuthService } from './auth.service';
 const answers = ['Carrinho Azul', 'Parque das Flores', 'Veterinária'];
 
 describe('cadastro em duas etapas', () => {
+  it.each([
+    ['sem respostas', false, true],
+    ['com respostas', true, false],
+  ])('informa a pendência no login de uma conta %s', async (_cenario, configured, expected) => {
+    const senha = await bcrypt.hash('Laranjas7 dançam sob a lua de inverno!', 10);
+    const patient = {
+      _id: 'patient-id',
+      cpf: '52998224725',
+      email: 'teste@example.com',
+      senha,
+      ...(configured && {
+        recoveryWord1Hash: 'hash-1',
+        recoveryWord2Hash: 'hash-2',
+        recoveryWord3Hash: 'hash-3',
+      }),
+    };
+    const model = {
+      findOne: jest.fn(() => ({ exec: () => Promise.resolve(patient) })),
+    };
+    const jwt = { signAsync: jest.fn().mockResolvedValue('access-token') };
+    const service = new AuthService(model as never, {} as never, jwt as never);
+
+    const result = await service.login({
+      cpf: patient.cpf,
+      password: 'Laranjas7 dançam sob a lua de inverno!',
+    });
+
+    expect(result.user.recovery_setup_required).toBe(expected);
+  });
+
   it('cria a conta sem respostas e entrega apenas um token temporário de configuração', async () => {
     const create = jest.fn((data: Record<string, string>) =>
       Promise.resolve({ _id: 'patient-id', ...data }),

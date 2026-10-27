@@ -490,6 +490,11 @@ export class AuthService {
         cpf: patient.cpf,
         email: patient.email,
         role: UserRole.PACIENTE,
+        recovery_setup_required: !(
+          patient.recoveryWord1Hash &&
+          patient.recoveryWord2Hash &&
+          patient.recoveryWord3Hash
+        ),
       },
     };
   }

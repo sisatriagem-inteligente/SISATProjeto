@@ -1,5 +1,6 @@
 import { IsNotEmpty, IsString, MinLength } from 'class-validator';
 import {
+  HasRequiredPasswordCharacters,
   IsStrongPassword,
   MaxPasswordBytes,
 } from '../validators/password-strength.validator';
@@ -18,6 +19,7 @@ export class ResetPasswordDto {
   @IsString()
   @MinLength(15)
   @MaxPasswordBytes()
+  @HasRequiredPasswordCharacters()
   @IsStrongPassword()
   newPassword!: string;
 }

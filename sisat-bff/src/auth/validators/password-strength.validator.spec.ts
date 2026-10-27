@@ -1,5 +1,6 @@
 import { validate } from 'class-validator';
 import { CadastroDto } from '../dto/cadastro.dto';
+import { ResetPasswordDto } from '../dto/reset-password.dto';
 import { classifyPassword } from './password-strength.validator';
 
 async function passwordErrors(password: string) {
@@ -35,7 +36,29 @@ describe('validação de senha no cadastro', () => {
 
   it('aceita frase-senha longa e pouco previsível', async () => {
     expect(
-      await passwordErrors('Laranjas dançam sob a lua de inverno!'),
+      await passwordErrors('Laranjas7 dançam sob a lua de inverno!'),
     ).toBeUndefined();
+  });
+
+  it.each([
+    ['maiúscula', 'laranjas7 dançam sob a lua de inverno!'],
+    ['minúscula', 'LARANJAS7 DANÇAM SOB A LUA DE INVERNO!'],
+    ['número', 'Laranjas dançam sob a lua de inverno!'],
+    ['símbolo', 'Laranjas7 dançam sob a lua de inverno'],
+  ])('recusa senha sem %s', async (_tipo, password) => {
+    expect(await passwordErrors(password)).toHaveProperty(
+      'hasRequiredPasswordCharacters',
+    );
+  });
+
+  it('aplica a mesma regra na redefinição de senha', async () => {
+    const dto = Object.assign(new ResetPasswordDto(), {
+      resetToken: 'token-de-teste',
+      newPassword: 'senhacomquinze123',
+    });
+    const errors = await validate(dto);
+    expect(
+      errors.find((error) => error.property === 'newPassword')?.constraints,
+    ).toHaveProperty('hasRequiredPasswordCharacters');
   });
 });
