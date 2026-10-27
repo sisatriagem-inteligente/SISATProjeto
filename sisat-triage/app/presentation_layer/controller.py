@@ -2,17 +2,18 @@ from langchain_core.exceptions import OutputParserException
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 
 from app.cognitive_layer.graph import app
+from app.cognitive_layer.extraction import extrair_dados
 from app.cognitive_layer.mar_ia_agent import (
     CHAT_SYSTEM_PROMPT,
-    EXTRACAO_SYSTEM_PROMPT,
     extrator_chat_llm,
     mensagem_chat_llm,
 )
 from app.cognitive_layer.schemas import RespostaChat
-from app.cognitive_layer.structured_output import gerar_resposta_estruturada
 from app.presentation_layer.request_models import TriagemRequest
+from app.observability import observar_etapa, observar_funcao
+from app.langsmith_transport import registrar_configurado
 
-
+# Converte o histórico recebido para os objetos de mensagem do LangChain
 def _historico_langchain(request: TriagemRequest):
     historico = []
     for mensagem in request.messages:
@@ -20,45 +21,31 @@ def _historico_langchain(request: TriagemRequest):
             historico.append(HumanMessage(content=mensagem.content))
         elif mensagem.role == "assistant":
             historico.append(AIMessage(content=mensagem.content))
+    # Papéis diferentes de user e assistant não são incluídos no histórico
     return historico
 
-
+# Instrumenta a extração usada pelo chat, sem registrar o conteúdo do histórico
+@observar_funcao("extrair_dados", registrar_configurado)
 def _extrair_dados(historico):
-    mensagens = [SystemMessage(content=EXTRACAO_SYSTEM_PROMPT), *historico]
-    # A primeira extração válida é a fonte de verdade. Uma nova chamada só é
-    # feita quando o modelo não consegue produzir uma saída estruturada válida.
-    try:
-        return extrator_chat_llm.invoke(mensagens)
-    except (OutputParserException, ValueError):
-        pass
+    return extrair_dados(historico, extrator_chat_llm)
 
-    revisao = [*mensagens, SystemMessage(content=(
-        "Faça uma segunda leitura independente de todo o histórico. Considere "
-        "o contexto das perguntas anteriores e preserve somente informações "
-        "explicitamente fornecidas pelo paciente."
-    ))]
-    try:
-        return extrator_chat_llm.invoke(revisao)
-    except (OutputParserException, ValueError):
-        raise OutputParserException("As duas extrações foram inválidas")
-
-
+# Verifica se o texto não está vazio e termina com interrogação
 def _mensagem_e_pergunta(resposta) -> bool:
     mensagem = resposta.mensagem.strip()
     return bool(mensagem) and mensagem.endswith("?")
 
-
+# Desconsidera diferenças de caixa, espaços e pontuação final na comparação
 def _normalizar_mensagem(mensagem: str) -> str:
     return " ".join(mensagem.casefold().strip().rstrip("?.!").split())
 
-
+# Recupera a mensagem mais recente da MarIA no histórico
 def _ultima_mensagem_maria(historico) -> str | None:
     for mensagem in reversed(historico):
         if isinstance(mensagem, AIMessage):
             return mensagem.content
     return None
 
-
+# Confere o formato, o campo declarado e a repetição da última mensagem
 def _pergunta_valida(
     resposta,
     ultima_pergunta: str | None,
@@ -74,7 +61,8 @@ def _pergunta_valida(
         ultima_pergunta
     )
 
-
+# Agrupa os registros das etapas do chat sob uma execução principal
+@observar_funcao("chat", registrar_configurado, agrupar=True)
 def processar_chat(request: TriagemRequest):
     # O BFF continua sendo responsável por enviar todo o histórico.
     historico = _historico_langchain(request)
@@ -82,6 +70,7 @@ def processar_chat(request: TriagemRequest):
     try:
         dados = _extrair_dados(historico)
     except (OutputParserException, ValueError):
+        # Mantém a coleta aberta quando a extração não produz dados válidos
         return RespostaChat(
             mensagem=(
                 "Não consegui interpretar os dados agora. "
@@ -90,29 +79,21 @@ def processar_chat(request: TriagemRequest):
             finalizada=False,
         )
 
-    # O Python, e não o texto do modelo, decide quando a coleta terminou.
+    # A conclusão depende das regras de pendência, não de uma decisão do modelo
     pendentes = dados.campos_pendentes()
-    print("=== CHAT DEBUG ===")
-    print("DADOS EXTRAÍDOS:")
-    print(dados.model_dump_json(indent=2))
-    print("CAMPOS PENDENTES:")
-    print(pendentes)
     if not pendentes:
-        print("CAMPO ESCOLHIDO: nenhum")
-        print("RESPOSTA GERADA:")
-        print('"Obrigada pelas informações. A coleta foi concluída."')
-        print("=== FIM CHAT DEBUG ===")
         return RespostaChat(
             mensagem="Obrigada pelas informações. A coleta foi concluída.",
             finalizada=True,
         )
-
+    # Seleciona o primeiro campo pendente na ordem definida pela aplicação
     proximo_campo = pendentes[0]
-    print(f"CAMPO ESCOLHIDO: {proximo_campo}")
+    # Informa ao modelo os dados disponíveis e o único campo a perguntar.
     contexto = SystemMessage(content=(
         f"Dados já coletados: {dados.model_dump(exclude_none=True)}. "
         f"O único campo que deve ser perguntado agora é: {proximo_campo}."
     ))
+    # Combina as instruções gerais, o histórico e o contexto desta solicitação
     mensagens_chat = [
         SystemMessage(content=CHAT_SYSTEM_PROMPT),
         *historico,
@@ -120,7 +101,9 @@ def processar_chat(request: TriagemRequest):
     ]
 
     try:
-        resposta = mensagem_chat_llm.invoke(mensagens_chat)
+        # Observa a chamada ao modelo sem incluir as mensagens no registro
+        with observar_etapa("gerar_pergunta", registrar_configurado):
+            resposta = mensagem_chat_llm.invoke(mensagens_chat)
         precisa_tentar_novamente = not _pergunta_valida(
             resposta,
             _ultima_mensagem_maria(historico),
@@ -129,15 +112,19 @@ def processar_chat(request: TriagemRequest):
     except (OutputParserException, ValueError):
         precisa_tentar_novamente = True
 
+    # Realiza uma segunda tentativa quando a primeira resposta falha ou é rejeitada.
     if precisa_tentar_novamente:
+        # Acrescenta uma orientação corretiva para a segunda tentativa
         mensagens_chat.append(SystemMessage(content=(
             "A resposta anterior foi inválida ou repetiu a última pergunta. "
             "Responda novamente com uma única pergunta objetiva somente sobre "
             f"o campo {proximo_campo} e termine com ponto de interrogação."
         )))
         try:
-            resposta = mensagem_chat_llm.invoke(mensagens_chat)
+            with observar_etapa("gerar_pergunta", registrar_configurado):
+                resposta = mensagem_chat_llm.invoke(mensagens_chat)
         except (OutputParserException, ValueError):
+            # Solicita nova mensagem quando a segunda geração também falha
             return RespostaChat(
                 mensagem=(
                     "Não consegui formular a próxima pergunta agora. "
@@ -145,7 +132,7 @@ def processar_chat(request: TriagemRequest):
                 ),
                 finalizada=False,
             )
-
+        # Se a segunda resposta não passar nas verificações, usa uma pergunta fixa
         if not _pergunta_valida(
             resposta,
             _ultima_mensagem_maria(historico),
@@ -155,22 +142,28 @@ def processar_chat(request: TriagemRequest):
                 f"Ainda preciso saber sobre {proximo_campo}. "
                 "Você pode informar?"
             )
-            print("RESPOSTA GERADA (fallback):")
-            print(repr(mensagem_fallback))
-            print("=== FIM CHAT DEBUG ===")
             return RespostaChat(
                 mensagem=mensagem_fallback,
                 finalizada=False,
             )
-
-    print("RESPOSTA GERADA:")
-    print(repr(resposta.mensagem))
-    print("=== FIM CHAT DEBUG ===")
+    # Devolve a pergunta aprovada, mantendo a coleta aberta
     return RespostaChat(mensagem=resposta.mensagem, finalizada=False)
 
 
 def processar_triagem(request: TriagemRequest):
-    # O fluxo final existente permanece inalterado.
-    messages = _historico_langchain(request)
-    estado_final = app.invoke({"messages": messages})
-    return gerar_resposta_estruturada(estado_final["messages"])
+    # Agrupa os registros dos nós sob a operação principal de triagem
+    with observar_etapa("triagem", registrar_configurado, agrupar=True):
+        messages = _historico_langchain(request)
+
+        # Inicia uma execução do grafo com o histórico recebido nesta requisição
+        estado_final = app.invoke({"messages": messages})
+        resposta_final = estado_final.get("resposta_final")
+
+        # Exige a presença da ficha e a indicação de conclusão do processamento
+        if resposta_final is None or not estado_final.get("finalizado", False):
+            raise ValueError(
+                "Não foi possível finalizar a triagem: "
+                "verifique se todos os dados necessários foram coletados."
+            )
+
+        return resposta_final

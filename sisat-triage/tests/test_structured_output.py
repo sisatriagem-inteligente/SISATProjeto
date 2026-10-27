@@ -1,31 +1,20 @@
-from app.cognitive_layer.structured_output import gerar_resposta_estruturada
+import unittest
+from unittest.mock import patch
 
-from langchain_core.messages import HumanMessage #LangChain trabalha com mensagens
+from langchain_core.messages import HumanMessage
 
-messages = [
-    HumanMessage(
-        content="""
-Meu nome é João.
-Tenho 27 anos.
-Sou do sexo masculino.
+from app.cognitive_layer.schemas import ResultadoClinico
+from app.cognitive_layer.structured_output import gerar_resultado_clinico
 
-Estou com dor abdominal há cerca de 12 horas.
 
-A dor começou depois do almoço.
-
-Também sinto náuseas.
-Tive dois episódios de vômito.
-Perdi o apetite.
-
-Não possuo doenças conhecidas.
-Não faço uso de medicamentos contínuos.
-"""
-    )
-]
-resposta = gerar_resposta_estruturada(messages)
-
-print("\n========== OBJETO ==========")
-print(resposta)
-
-print("\n========== JSON ==========")
-print(resposta.model_dump())
+class TestStructuredOutput(unittest.TestCase):
+    @patch("app.cognitive_layer.structured_output.structured_clinical_llm")
+    def test_gera_resultado_clinico_sem_reextrair_dados_pessoais(self, modelo):
+        mensagens = [HumanMessage(content="Caso fictício: dor abdominal relatada.")]
+        esperado = ResultadoClinico(
+            resumo_triagem={"resumo": "Dor abdominal relatada."},
+            hipoteses_clinicas_iniciais=[],
+        )
+        modelo.invoke.return_value = esperado
+        self.assertIs(gerar_resultado_clinico(mensagens), esperado)
+        modelo.invoke.assert_called_once_with(mensagens)

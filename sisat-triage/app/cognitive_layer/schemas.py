@@ -2,13 +2,14 @@ from typing import Literal
 
 from pydantic import BaseModel, Field, model_validator
 
-
+# Resposta pública do endpoint /chat, utilizada pelo BFF
 class RespostaChat(BaseModel):
-    # Estrutura da resposta devolvida ao backend durante a conversa.
     mensagem: str = Field(
         min_length=1,
         description="Próxima mensagem da MarIA para o paciente.",
     )
+    # O controlador calcula este valor pelas pendências da coleta
+    # Não é uma decisão delegada ao modelo de linguagem
     finalizada: bool = Field(
         description=(
             "Indica se os dados necessários para gerar a ficha final "
@@ -16,11 +17,12 @@ class RespostaChat(BaseModel):
         )
     )
 
-
+# Resposta interna solicitada ao modelo para gerar uma pergunta
+# Diferentemente de RespostaChat, inclui o campo que o modelo declara perguntar
 class MensagemChatAgente(BaseModel):
-    # Define qual campo a pergunta deve coletar, evitando que a MarIA
-    # escolha outro assunto diferente do campo pendente.
     campo_alvo: Literal[
+    # Literal restringe os valores aceitos para o campo declarado
+    # O controlador compara esse valor com o próximo campo pendente
         "nome",
         "idade",
         "sexo",
@@ -32,6 +34,8 @@ class MensagemChatAgente(BaseModel):
     ] = Field(
         description="Único campo pendente que esta pergunta pretende coletar.",
     )
+    # min_length exige pelo menos um caractere
+    # A forma interrogativa e a repetição são verificadas no controlador
     mensagem: str = Field(
         min_length=1,
         description="Próxima mensagem da MarIA para o paciente.",
@@ -39,12 +43,15 @@ class MensagemChatAgente(BaseModel):
 
 
 class DadosColetaChat(BaseModel):
-    """Dados encontrados no histórico; None representa dado ausente."""
+#Representa dados da coleta, que podem estar parcialmente preenchidos
 
+    # Os campos aceitam None porque a coleta pode estar incompleta
+    # Na representação JSON, None corresponde a null
     nome: str | None = Field(
         default=None,
         description="Nome explicitamente informado pelo paciente.",
     )
+    # ge e le estabelecem os limites inclusivos aceitos para idade
     idade: int | None = Field(
         default=None,
         ge=0,
@@ -59,6 +66,9 @@ class DadosColetaChat(BaseModel):
         default=None,
         description="Motivo principal do atendimento informado pelo paciente.",
     )
+    # Nas listas, None e [] possuem significados diferentes:
+    # None indica informação ausente; [] pode representar negativa explícita
+    # A correspondência com o relato é conferida no módulo de extração
     sintomas: list[str] | None = Field(
         default=None,
         description=(
@@ -66,6 +76,8 @@ class DadosColetaChat(BaseModel):
             "sintomas, ou uma lista com os sintomas relatados."
         ),
     )
+    # Permite considerar uma negativa válida como resposta ao campo
+    # Este indicador não significa ausência de outros sintomas
     sintomas_respondidos: bool = Field(
         default=False,
         description=(
@@ -78,11 +90,13 @@ class DadosColetaChat(BaseModel):
         default=None,
         description="Duração dos sintomas, como 3 horas ou 2 dias.",
     )
+    # Restringe as categorias aceitas, sem atribuir classificação de risco
+    # A evidência da intensidade no relato é conferida na extração
     intensidade: Literal["leve", "moderada", "intensa"] | None = Field(
         default=None,
         description="Intensidade explicitamente informada pelo paciente.",
     )
-    # None: não respondeu. []: afirmou que não possui complementos.
+
     informacoes_complementares: list[str] | None = Field(
         default=None,
         description=(
@@ -98,38 +112,51 @@ class DadosColetaChat(BaseModel):
             "respondeu."
         ),
     )
-
+    # Executa após a validação dos campos e ajusta a relação entre cada lista
+    # e seu indicador. Não consulta o histórico nem comprova uma negativa
     @model_validator(mode="after")
     def normalizar_respostas_de_lista(self):
-       # Se a queixa principal já foi identificada como um sintoma,
-        # adiciona essa informação à lista para evitar uma nova pergunta.
-        if self.sintomas is None and self.queixa_principal:
-            self.sintomas = [self.queixa_principal]
-            self.sintomas_respondidos = True
+        # Cada par contém o nome do campo de lista e de seu indicador
+        for lista, indicador in (
+            ("sintomas", "sintomas_respondidos"),
+            ("informacoes_complementares", "informacoes_complementares_respondidas"),
+        ):
+            # getattr acessa o atributo cujo nome está na variável lista
+            valor = getattr(self, lista)
+            if valor is None:
+                # Um indicador isolado não confirma resposta sem uma lista
+                setattr(self, indicador, False)
 
-        # Uma lista preenchida confirma que o paciente já respondeu.
-        # Se houve uma resposta negativa, a lista vazia representa essa resposta.
-        if self.sintomas is not None:
-            self.sintomas_respondidos = True
-        elif self.sintomas_respondidos:
-            self.sintomas = []
+            elif indicador in self.model_fields_set and not getattr(self, indicador):
+                # model_fields_set identifica os campos fornecidos
+                # explicitamente na criação do objeto.
+                # Se o indicador veio como False, não o promovemos a True.
+                if valor == []:
+                    # Lista vazia com indicador explicitamente False
+                    # não é tratada como uma negativa confirmada
+                    setattr(self, lista, None)
+            else:
+                # Uma lista fornecida sem indicador explícito False
+                # permite marcar o campo como respondido.
+                # A confirmação pelo histórico ocorre na extração
+                setattr(self, indicador, True)
 
-        if self.informacoes_complementares is not None:
-            self.informacoes_complementares_respondidas = True
-        elif self.informacoes_complementares_respondidas:
-            self.informacoes_complementares = []
+        # O validador devolve o próprio objeto após os ajustes
         return self
 
     def combinar(self, outra: "DadosColetaChat") -> "DadosColetaChat":
-        # Mantém o valor já encontrado e utiliza o novo somente
-        # quando o campo ainda não havia sido preenchido.
+        # Produz um novo objeto combinando duas coleta.
+        # Nos campos simples, prioriza o valor atual quando não é None
+        # Portanto, este método não substitui dados antigos por correções
         def primeiro_valido(nome):
             atual = getattr(self, nome)
             return atual if atual is not None else getattr(outra, nome)
 
+        # Preserva None quando nenhuma das coletas possui uma lista
         sintomas = None
         if self.sintomas is not None or outra.sintomas is not None:
-            # Une os sintomas encontrados nas duas extrações e remove duplicados.
+            # Une as listas, remove duplicados exatos e mantém a ordem
+            # Uma lista vazia permanece vazia se não houver itens nas duas
             sintomas = list(dict.fromkeys(
                 (self.sintomas or []) + (outra.sintomas or [])
             ))
@@ -145,6 +172,8 @@ class DadosColetaChat(BaseModel):
                 + (outra.informacoes_complementares or [])
             ))
 
+        # A criação do novo objeto também executa as validações do modelo
+        # Os indicadores são combinados por OR: basta um estar True
         return DadosColetaChat(
             nome=primeiro_valido("nome"),
             idade=primeiro_valido("idade"),
@@ -164,22 +193,31 @@ class DadosColetaChat(BaseModel):
         )
 
     def campos_pendentes(self) -> list[str]:
-        # Verifica quais informações já foram respondidas para determinar
-        # quais campos ainda precisam ser coletados na conversa.
+        # A ordem deste dicionário define a ordem das pendências devolvidas
+        # O controlador seleciona o primeiro item para a próxima pergunta
         valores = {
             "nome": bool(self.nome),
+
+            # Idade zero é válida; por isso verificamos None, não bool(idade)
             "idade": self.idade is not None,
+
             "sexo": bool(self.sexo),
             "queixa principal": bool(self.queixa_principal),
+
+            # Os indicadores permitem aceitar negativas com listas vazias
             "sintomas": self.sintomas_respondidos,
+
             "tempo dos sintomas": bool(self.tempo_sintomas),
             "intensidade": bool(self.intensidade),
             "informações complementares": (
                 self.informacoes_complementares_respondidas
             ),
         }
+        # Retorna somente os nomes dos campos considerados não respondidos
         return [campo for campo, informado in valores.items() if not informado]
 
+# Modelos usados para organizar os dados destinados à ficha final.
+# Diferentemente de DadosColetaChat, seus campos não possuem default=None
 class DadosPaciente(BaseModel):
     nome: str #anotação de tipo, não atribuição de valor
     idade: int
@@ -187,20 +225,32 @@ class DadosPaciente(BaseModel):
 
 class DadosTriagem(BaseModel):
     queixa_principal: str
-    sintomas: list[str] # Lista de sintomas identificados na triagem.
+    sintomas: list[str]
     tempo_sintomas: str
+    # Aqui o tipo é str. A restrição às três categorias está em DadosColetaChat
     intensidade: str
-    informacoes_complementares: list[str] # Informações adicionais relatadas.
+    informacoes_complementares: list[str]
+
+# Parte textual do resultado gerado pelo modelo
 class ResumoTriagem(BaseModel):
     resumo: str
 
+# Define o formato de uma hipótese, sem validar sua fundamentação clínica
 class HipoteseClinica(BaseModel):
     hipotese: str
     justificativa: str
 
+# Saída solicitada na chamada que gera resumo e hipóteses em conjunto
+# Não inclui os dados pessoais e de triagem, já organizados no estado
+class ResultadoClinico(BaseModel):
+    resumo_triagem: ResumoTriagem
+    hipoteses_clinicas_iniciais: list[HipoteseClinica]
+
+# Ficha montada no nó finalizar e devolvida pelo processamento de /triagem
 class RespostaFinal(BaseModel):
     # Reúne todas as partes do resultado final da triagem.
     dados_paciente: DadosPaciente
     dados_triagem: DadosTriagem
     resumo_triagem: ResumoTriagem
+    # O tipo lista permite uma resposta sem hipóteses: []
     hipoteses_clinicas_iniciais: list[HipoteseClinica]

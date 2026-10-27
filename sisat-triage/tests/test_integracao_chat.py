@@ -76,7 +76,11 @@ class TestIntegracaoChat(unittest.TestCase):
             "triagem_id": "triagem-002",
             "messages": [{
                 "role": "user",
-                "content": "Informei todos os dados e não tenho mais nada.",
+                "content": (
+                    "Meu nome é Guilherme, tenho 17 anos e sou do sexo masculino. "
+                    "Minha queixa é dor de cabeça há três horas, intensidade moderada. "
+                    "Não possuo informações complementares."
+                ),
             }],
         })
 
@@ -107,24 +111,24 @@ class TestIntegracaoChat(unittest.TestCase):
         self.assertNotIn("sintomas", dados.campos_pendentes())
         self.assertIn("sintomas", DadosColetaChat().campos_pendentes())
 
-    def test_indicador_negativo_converte_valor_ausente_em_lista_vazia(self):
+    def test_indicador_isolado_nao_comprova_resposta_negativa(self):
         dados = DadosColetaChat(
             sintomas_respondidos=True,
             informacoes_complementares_respondidas=True,
         )
-        self.assertEqual(dados.sintomas, [])
-        self.assertEqual(dados.informacoes_complementares, [])
-        self.assertNotIn("sintomas", dados.campos_pendentes())
-        self.assertNotIn(
+        self.assertIsNone(dados.sintomas)
+        self.assertIsNone(dados.informacoes_complementares)
+        self.assertIn("sintomas", dados.campos_pendentes())
+        self.assertIn(
             "informações complementares",
             dados.campos_pendentes(),
         )
 
-    def test_queixa_principal_compõe_sintomas_quando_lista_for_omitida(self):
+    def test_queixa_sozinha_nao_confirma_resposta_sobre_sintomas(self):
         dados = DadosColetaChat(queixa_principal="dor de cabeça")
-        self.assertEqual(dados.sintomas, ["dor de cabeça"])
-        self.assertTrue(dados.sintomas_respondidos)
-        self.assertNotIn("sintomas", dados.campos_pendentes())
+        self.assertIsNone(dados.sintomas)
+        self.assertFalse(dados.sintomas_respondidos)
+        self.assertIn("sintomas", dados.campos_pendentes())
 
     @patch("app.presentation_layer.controller.mensagem_chat_llm")
     @patch("app.presentation_layer.controller.extrator_chat_llm")
@@ -229,7 +233,7 @@ class TestIntegracaoChat(unittest.TestCase):
             "triagem_id": "triagem-005",
             "messages": [{
                 "role": "user",
-                "content": "A dor de cabeça é minha única queixa.",
+                "content": "Meu nome é Guilherme, tenho 17 anos. A dor de cabeça é minha única queixa.",
             }],
         })
 
@@ -260,6 +264,10 @@ class TestIntegracaoChat(unittest.TestCase):
         resposta = self.client.post("/chat", json={
             "triagem_id": "triagem-006",
             "messages": [
+                {"role": "user", "content": (
+                    "Meu nome é Guilherme, tenho 17 anos e sou do sexo masculino. "
+                    "Dor de cabeça, intensidade moderada. Não possuo informações complementares."
+                )},
                 {"role": "assistant", "content": "Há quanto tempo?"},
                 {"role": "user", "content": "3 dias."},
             ],
@@ -297,6 +305,7 @@ class TestIntegracaoChat(unittest.TestCase):
         resposta = self.client.post("/chat", json={
             "triagem_id": "triagem-007",
             "messages": [
+                {"role": "user", "content": "Meu nome é Lucas, tenho 17 anos. Estou com dor de cabeça."},
                 {"role": "assistant", "content": "Qual é o seu sexo?"},
                 {"role": "user", "content": "Prefiro não responder."},
             ],
