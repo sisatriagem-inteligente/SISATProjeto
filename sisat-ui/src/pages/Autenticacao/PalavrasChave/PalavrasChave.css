@@ -28,6 +28,60 @@
     line-height: 1.5;
 }
 
+ /* --- BOTÃO DE MOSTRAR/OCULTAR A SENHA --- */
+/* Wrapper exclusivo desta tela para evitar conflitos com estilos globais. */
+.palavras-chave-container .input-group .palavras-chave-password-wrapper {
+    position: relative;
+    display: block;
+    align-self: stretch;
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+}
+
+.palavras-chave-container .input-group .palavras-chave-password-wrapper > input {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    padding-right: 44px;
+}
+
+.palavras-chave-container .input-group .palavras-chave-password-wrapper > .palavras-chave-toggle {
+    position: absolute;
+    top: 50%;
+    right: 8px;
+    left: auto;
+    bottom: auto;
+    transform: translateY(-50%);
+    z-index: 1;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 6px;
+    border: none;
+    border-radius: 4px;
+    background: transparent;
+    color: #1C3B60;
+    cursor: pointer;
+}
+
+.palavras-chave-container .input-group .palavras-chave-password-wrapper > .palavras-chave-toggle:hover {
+    color: #5B3A2E;
+}
+
+.palavras-chave-container .input-group .palavras-chave-password-wrapper > .palavras-chave-toggle:disabled {
+    cursor: not-allowed;
+}
+
+.palavras-chave-container .input-group .palavras-chave-password-wrapper > .palavras-chave-toggle:focus-visible {
+    outline: 2px solid #5B3A2E;
+    outline-offset: 2px;
+}
+
+
 /* ---- MENSAGENS ---- */
 
 .palavras-chave-container .auth-message {

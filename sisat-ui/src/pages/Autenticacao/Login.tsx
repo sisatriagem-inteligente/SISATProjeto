@@ -39,8 +39,17 @@ export default function Login(){
       setMensagem('');
       setCarregando(true);
       try {
-        await loginPaciente({ cpf: cpf.replace(/\D/g, ''), password });
-        navigate('/inicioPaciente');
+        const resposta = await loginPaciente({
+        cpf: cpf.replace(/\D/g, ''),
+        password,
+      });
+
+      navigate(
+        resposta.data.user.recovery_setup_required
+          ? '/configurar-palavras-chave'
+          : '/inicioPaciente',
+        { replace: true },
+      );
       } catch (erro) {
         setMensagem(obterMensagemErro(erro));
       } finally {

@@ -8,6 +8,7 @@ import './PalavrasChave.css';
 import {
   concluirCadastroPaciente,
   configurarRecuperacaoPaciente,
+  marcarRecuperacaoConfigurada,
   obterPerguntasRecuperacao,
   obterMensagemErro,
   type PerguntaRecuperacao,
@@ -102,6 +103,7 @@ const carregandoPerguntas =
 
   const [cpf, setCpf] = useState('');
   const [senhaAtual, setSenhaAtual] = useState('');
+  const [mostrarSenhaAtual, setMostrarSenhaAtual] = useState(false);
 
 
   const [carregando, setCarregando] = useState(false);
@@ -286,7 +288,14 @@ const carregandoPerguntas =
     }
 
     // Só chegamos aqui se a operação real tiver sucesso.
-    navigate('/login', { replace: true });
+    if (
+      modo === 'configuracao' &&
+      marcarRecuperacaoConfigurada(cpf.replace(/\D/g, ''))
+    ) {
+      navigate('/inicioPaciente', { replace: true });
+    } else {
+      navigate('/login', { replace: true });
+    }
     } catch (erro) {
     setMensagem(obterMensagemErro(erro));
     } finally {
@@ -393,6 +402,7 @@ const carregandoPerguntas =
                   <label htmlFor="senha-atual">
                     Senha atual:
                   </label>
+                  <div className="palavras-chave-password-wrapper">
                   <input
                     type="password"
                     id="senha-atual"
@@ -404,6 +414,29 @@ const carregandoPerguntas =
                     required
                     disabled={carregando}
                   />
+
+                  <button
+                      type="button"
+                      className="palavras-chave-toggle"
+                      aria-label={
+                        mostrarSenhaAtual
+                          ? 'Ocultar senha atual'
+                          : 'Mostrar senha atual'
+                      }
+                      aria-pressed={mostrarSenhaAtual}
+                      onClick={() =>
+                        setMostrarSenhaAtual((atual) => !atual)
+                      }
+                      disabled={carregando}
+                    >
+                      <i
+                        className={`bi ${
+                          mostrarSenhaAtual ? 'bi-eye' : 'bi-eye-slash'
+                        }`}
+                        aria-hidden="true"
+                      />
+                    </button>
+                </div>
                 </div>
               </>
             )}

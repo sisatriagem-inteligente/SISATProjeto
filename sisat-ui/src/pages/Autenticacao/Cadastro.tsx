@@ -73,13 +73,28 @@ export default function Cadastro() {
     return;
   }
 
+  // Validação local da semelhança das senhas
   if (password !== confirmarSenha) {
     setMensagem('As senhas não são iguais.');
     return;
   }
 
+  // Validação local do tamanho da senha.
   if (Array.from(password).length < 15 || new TextEncoder().encode(password).length > 72) {
-    setMensagem('A senha deve ter pelo menos 15 caracteres e no máximo 72 bytes em UTF-8.');
+    setMensagem('A senha deve ter pelo menos 15 caracteres.');
+    return;
+  }
+
+  if (
+    !/[A-Z]/.test(password) ||
+    !/[a-z]/.test(password) ||
+    !/[0-9]/.test(password) ||
+    !/[!-/:-@[-`{-~]/.test(password)
+  ) {
+    setMensagem(
+      'A senha deve conter pelo menos uma letra maiúscula, ' +
+        'uma minúscula, um número e um símbolo.',
+    );
     return;
   }
 
@@ -92,6 +107,7 @@ export default function Cadastro() {
         modoDemonstracao: true,
       },
     });
+    
 
     return;
   }

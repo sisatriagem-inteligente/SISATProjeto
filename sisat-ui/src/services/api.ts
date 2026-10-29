@@ -37,6 +37,7 @@ export interface UsuarioSISAT {
   cpf?: string;
   email: string;
   role: UserRole;
+  recovery_setup_required?: boolean;
 }
 
 /**
@@ -326,6 +327,29 @@ export function obterUsuario(): UsuarioSISAT | null {
   } catch {
     return null;
   }
+}
+
+export function marcarRecuperacaoConfigurada(
+  cpf: string,
+): boolean {
+  const usuario = obterUsuario();
+
+  if (
+    usuario?.role !== 'paciente' ||
+    usuario.cpf !== cpf
+  ) {
+    return false;
+  }
+
+  localStorage.setItem(
+    'sisat_user',
+    JSON.stringify({
+      ...usuario,
+      recovery_setup_required: false,
+    }),
+  );
+
+  return true;
 }
 
 /**

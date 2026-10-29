@@ -183,7 +183,21 @@ export default function RecuperarSenha() {
 
     if (quantidadeBytes > 72) {
       mostrarMensagem(
-        'A nova senha ultrapassa o limite de 72 bytes em UTF-8.',
+        'A nova senha ficou longa demais. Tente encurtá-la.',
+        'erro',
+      );
+      return;
+    }
+
+    if (
+      !/[A-Z]/.test(novaSenha) ||
+      !/[a-z]/.test(novaSenha) ||
+      !/[0-9]/.test(novaSenha) ||
+      !/[!-/:-@[-`{-~]/.test(novaSenha)
+    ) {
+      mostrarMensagem(
+        'A nova senha deve conter pelo menos uma letra maiúscula, ' +
+          'uma minúscula, um número e um símbolo.',
         'erro',
       );
       return;
@@ -346,6 +360,13 @@ export default function RecuperarSenha() {
                   />
                 </button>
               </div>
+
+                <small>
+                  A nova senha deve ter pelo menos 15 caracteres,
+                  uma letra maiúscula, uma minúscula, um número e
+                  um símbolo.
+                </small>
+
             </div>
 
             <div className="input-group">
