@@ -8,18 +8,16 @@ from fastapi.testclient import TestClient
 from app.cognitive_layer.schemas import DadosColetaChat, ResultadoClinico
 from app.cognitive_layer.graph import app as grafo
 from main import app
-from tests.fixtures_coleta import ANA
+from tests.fixtures_coleta import ANA, CASOS
 
 
 class TestIntegracaoTriagem(unittest.TestCase):
-    def test_chat_e_grafo_usam_mesma_conferencia(self):
+    def test_chat_e_grafo_usam_extracao_estruturada(self):
         payload = {"triagem_id": "ficticia-001", "messages": [
             {"role": "assistant" if m.type == "ai" else "user", "content": m.content}
             for m in ANA
         ]}
-        incompleto = DadosColetaChat(
-            nome="Ana", idade=35, sexo="feminino", queixa_principal="Dor de cabeça"
-        )
+        dados_completos = DadosColetaChat(**CASOS[0][2])
         clinico = ResultadoClinico(
             resumo_triagem={"resumo": "Resumo fictício."},
             hipoteses_clinicas_iniciais=[],
@@ -29,8 +27,8 @@ class TestIntegracaoTriagem(unittest.TestCase):
              patch("app.cognitive_layer.nodes.extrator_chat_llm") as grafo_llm, \
              patch("app.cognitive_layer.nodes.gerar_resultado_clinico", return_value=clinico) as gerar, \
              contextlib.redirect_stdout(saida):
-            chat_llm.invoke.return_value = incompleto
-            grafo_llm.invoke.return_value = incompleto
+            chat_llm.invoke.return_value = dados_completos
+            grafo_llm.invoke.return_value = dados_completos
             with TestClient(app) as cliente:
                 chat = cliente.post("/chat", json=payload)
                 triagem = cliente.post("/triagem", json=payload)

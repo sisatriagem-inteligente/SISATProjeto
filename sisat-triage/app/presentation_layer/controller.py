@@ -2,10 +2,10 @@ from langchain_core.exceptions import OutputParserException
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 
 from app.cognitive_layer.graph import app
-from app.cognitive_layer.extraction import extrair_dados
 from app.cognitive_layer.mar_ia_agent import (
     CHAT_SYSTEM_PROMPT,
     extrator_chat_llm,
+    interpretar_historico,
     mensagem_chat_llm,
 )
 from app.cognitive_layer.schemas import RespostaChat
@@ -27,7 +27,7 @@ def _historico_langchain(request: TriagemRequest):
 # Instrumenta a extração usada pelo chat, sem registrar o conteúdo do histórico
 @observar_funcao("extrair_dados", registrar_configurado)
 def _extrair_dados(historico):
-    return extrair_dados(historico, extrator_chat_llm)
+    return interpretar_historico(historico, extrator_chat_llm)
 
 # Verifica se o texto não está vazio e termina com interrogação
 def _mensagem_e_pergunta(resposta) -> bool:

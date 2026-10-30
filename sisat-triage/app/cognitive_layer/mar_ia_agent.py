@@ -13,6 +13,8 @@ for variavel in ("LANGSMITH_TRACING", "LANGCHAIN_TRACING_V2", "LANGCHAIN_TRACING
 
 from langchain_ollama import ChatOllama
 from langchain_core.runnables import RunnableLambda
+from langchain_core.exceptions import OutputParserException
+from langchain_core.messages import SystemMessage
 from app.cognitive_layer.prompts import SYSTEM_PROMPT
 from app.cognitive_layer.schemas import DadosColetaChat, MensagemChatAgente
 from langchain.agents import create_agent
@@ -64,8 +66,7 @@ Separe sintomas atuais de antecedentes e medicamentos. Em informações
 complementares, preserve também a frequência de uso relatada.
 Ausência de menção não é resposta negativa: mantenha null e indicador false.
 """
-# O prompt orienta a geração, mas não garante seu cumprimento
-# O módulo extraction.py confere posteriormente os dados retornados
+# O prompt orienta a extração; a resposta estruturada também é validada pelo Pydantic.
 
 
 # Complementa o prompt geral com regras específicas para a conversa.
@@ -111,6 +112,30 @@ extrator_chat_llm = llm.with_structured_output(
     _schema_coleta_chat,
     method="json_schema",
 ) | RunnableLambda(_validar_coleta_chat)
+
+
+def interpretar_historico(historico, extrator=None):
+    """Obtém a extração estruturada do histórico com o modelo configurado."""
+    if not historico:
+        return DadosColetaChat()
+
+    modelo_extrator = extrator or extrator_chat_llm
+    mensagens = [SystemMessage(content=EXTRACAO_SYSTEM_PROMPT), *historico]
+    for tentativa in range(2):
+        try:
+            return modelo_extrator.invoke(mensagens)
+        except (OutputParserException, ValueError):
+            if tentativa:
+                raise OutputParserException(
+                    "Não foi possível interpretar a conversa"
+                ) from None
+            mensagens = [
+                *mensagens,
+                SystemMessage(content=(
+                    "Releia o histórico e retorne somente informações explícitas "
+                    "do paciente. Use null para informações ausentes."
+                )),
+            ]
 
 
 # Configura a geração da pergunta com o modelo Pydantic correspondente

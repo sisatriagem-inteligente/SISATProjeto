@@ -1,7 +1,6 @@
 from langchain_core.messages import SystemMessage
 
 from app.cognitive_layer.state import ConversationState
-from app.cognitive_layer.extraction import extrair_dados
 from app.cognitive_layer.schemas import (
     DadosPaciente,
     DadosTriagem,
@@ -10,6 +9,7 @@ from app.cognitive_layer.schemas import (
 )
 from app.cognitive_layer.mar_ia_agent import (
     extrator_chat_llm,
+    interpretar_historico,
 )
 from app.cognitive_layer.structured_output import gerar_resultado_clinico
 from app.observability import observar_funcao
@@ -40,8 +40,8 @@ def extrair_dados_node(state: ConversationState) -> dict:
             "resposta_final": None,
         }
 
-    # Utiliza a mesma função de extração e conferência empregada pelo chat
-    dados = extrair_dados(messages, extrator_chat_llm)
+    # Utiliza a extração estruturada compartilhada com o endpoint de chat
+    dados = interpretar_historico(messages, extrator_chat_llm)
 
     # Devolve atualizações parciais do estado
     # A conclusão e a ficha final serão determinadas pelos nós seguintes

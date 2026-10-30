@@ -8,17 +8,15 @@ import json
 import os
 import time
 import unittest
-from unittest.mock import Mock
 from urllib.parse import urlparse
 
-from app.cognitive_layer.extraction import extrair_dados
 from tests.fixtures_coleta import CASOS
 
 
 @unittest.skipUnless(os.environ.get("SISAT_TEST_OLLAMA") == "1", "requer Ollama local e execução explícita")
 class TestOllamaRegressao(unittest.TestCase):
     def test_seis_historicos_ficticios(self):
-        from app.cognitive_layer.mar_ia_agent import llm, extrator_chat_llm
+        from app.cognitive_layer.mar_ia_agent import llm, interpretar_historico
 
         # O teste real roda isoladamente; fecha a conexão persistente ao sair.
         self.addCleanup(llm._client._client.close)
@@ -27,13 +25,10 @@ class TestOllamaRegressao(unittest.TestCase):
         for nome, historico, esperado in CASOS:
             with self.subTest(caso=nome):
                 print(json.dumps({"iniciando": nome, "escopo": "extracao_modelo_local"}), flush=True)
-                modelo = Mock()
-                modelo.invoke.side_effect = extrator_chat_llm.invoke
                 inicio = time.monotonic()
-                dados = extrair_dados(historico, modelo)
+                dados = interpretar_historico(historico)
                 print(json.dumps({"caso": nome, "segundos": round(time.monotonic() - inicio, 2),
-                    "chamadas": modelo.invoke.call_count, "extraido": dados.model_dump(),
+                    "extraido": dados.model_dump(),
                     "pendentes": dados.campos_pendentes()}, ensure_ascii=True), flush=True)
-                self.assertEqual(modelo.invoke.call_count, 1)
                 for campo, valor in esperado.items():
                     self.assertEqual(getattr(dados, campo), valor, campo)
