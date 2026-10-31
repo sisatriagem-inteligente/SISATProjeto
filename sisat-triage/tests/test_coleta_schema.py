@@ -22,6 +22,14 @@ class TestColetaSchema(unittest.TestCase):
         self.assertIsNone(dados.informacoes_complementares)
         self.assertIn("informações complementares", dados.campos_pendentes())
 
+    def test_lista_preenchida_com_false_explicito_e_considerada_respondida(self):
+        dados = DadosColetaChat(
+            informacoes_complementares=["uso de medicamento"],
+            informacoes_complementares_respondidas=False,
+        )
+        self.assertTrue(dados.informacoes_complementares_respondidas)
+        self.assertNotIn("informações complementares", dados.campos_pendentes())
+
     def test_negativa_consistente_e_preservada(self):
         dados = DadosColetaChat(
             sintomas=[], sintomas_respondidos=True,

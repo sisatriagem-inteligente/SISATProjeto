@@ -5,13 +5,60 @@ from unittest.mock import patch
 
 from fastapi.testclient import TestClient
 
-from app.cognitive_layer.schemas import DadosColetaChat, ResultadoClinico
+from app.cognitive_layer.schemas import (
+    DadosColetaChat,
+    DadosPaciente,
+    DadosTriagem,
+    ResultadoClinico,
+)
 from app.cognitive_layer.graph import app as grafo
+from app.cognitive_layer.nodes import gerar_resumo_node
 from main import app
 from tests.fixtures_coleta import ANA, CASOS
 
 
 class TestIntegracaoTriagem(unittest.TestCase):
+    def test_resumo_com_risco_usa_fallback_conservador(self):
+        dados_triagem = DadosTriagem(
+            queixa_principal="dor no estômago",
+            sintomas=["dor no estômago", "náusea"],
+            tempo_sintomas="4 dias",
+            intensidade="moderada",
+            informacoes_complementares=[
+                "gastrite diagnosticada",
+                "uso omeprazol diariamente",
+            ],
+        )
+        resposta_inadequada = ResultadoClinico(
+            resumo_triagem={"resumo": "Classificação de risco baixa."},
+            hipoteses_clinicas_iniciais=[{
+                "hipotese": "Hipótese não verificada.",
+                "justificativa": "Classificação de risco baixa.",
+            }],
+        )
+        with patch(
+            "app.cognitive_layer.nodes.gerar_resultado_clinico",
+            return_value=resposta_inadequada,
+        ):
+            saida = gerar_resumo_node({
+                "dados_paciente": DadosPaciente(
+                    nome="Paciente Teste", idade=34, sexo="feminino"
+                ),
+                "dados_triagem": dados_triagem,
+                "messages": [],
+            })
+
+        self.assertEqual(saida["hipoteses_clinicas"], [])
+        self.assertEqual(
+            saida["resumo_triagem"].resumo,
+            "Queixa principal: dor no estômago. "
+            "Sintomas relatados: dor no estômago, náusea. "
+            "Duração informada: 4 dias. "
+            "Intensidade informada: moderada. "
+            "Informações complementares: gastrite diagnosticada; "
+            "uso omeprazol diariamente.",
+        )
+
     def test_chat_e_grafo_usam_extracao_estruturada(self):
         payload = {"triagem_id": "ficticia-001", "messages": [
             {"role": "assistant" if m.type == "ai" else "user", "content": m.content}

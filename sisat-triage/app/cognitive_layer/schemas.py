@@ -68,12 +68,16 @@ class DadosColetaChat(BaseModel):
     )
     # Nas listas, None e [] possuem significados diferentes:
     # None indica informação ausente; [] pode representar negativa explícita
-    # A correspondência com o relato é conferida no módulo de extração
+    # O prompt orienta a extração dos itens relatados; o schema valida o formato,
+    # mas não verifica semanticamente a correspondência com o histórico.
     sintomas: list[str] | None = Field(
         default=None,
         description=(
             "Use null se ainda não respondeu, [] se afirmou que não possui "
-            "sintomas, ou uma lista com os sintomas relatados."
+            "sintomas, ou uma lista com todos os sintomas relatados. Inclua "
+            "a queixa principal quando ela for um sintoma e os demais sintomas "
+            "mencionados na mesma frase. Exemplo: 'dor no estômago, "
+            "acompanhada de náusea' inclui os dois itens."
         ),
     )
     # Permite considerar uma negativa válida como resposta ao campo
@@ -91,7 +95,7 @@ class DadosColetaChat(BaseModel):
         description="Duração dos sintomas, como 3 horas ou 2 dias.",
     )
     # Restringe as categorias aceitas, sem atribuir classificação de risco
-    # A evidência da intensidade no relato é conferida na extração
+    # O prompt orienta a extração; o schema restringe as categorias aceitas
     intensidade: Literal["leve", "moderada", "intensa"] | None = Field(
         default=None,
         description="Intensidade explicitamente informada pelo paciente.",
@@ -101,7 +105,12 @@ class DadosColetaChat(BaseModel):
         default=None,
         description=(
             "Use null se ainda não respondeu, [] se informou que não há "
-            "complementos, ou uma lista com os complementos relatados."
+            "complementos, ou uma lista com os fatos complementares "
+            "explicitamente relatados. Preserve separadamente antecedentes, "
+            "condições diagnosticadas e medicamentos, incluindo a frequência "
+            "de uso. Exemplo: 'tenho gastrite diagnosticada e uso omeprazol "
+            "diariamente' deve gerar os itens 'gastrite diagnosticada' e "
+            "'uso omeprazol diariamente'. Não traduza nem omita itens."
         ),
     )
     informacoes_complementares_respondidas: bool = Field(
@@ -127,10 +136,16 @@ class DadosColetaChat(BaseModel):
                 # Um indicador isolado não confirma resposta sem uma lista
                 setattr(self, indicador, False)
 
+            elif valor:
+                # Uma lista com informações explícitas comprova que o campo
+                # foi respondido, mesmo se o modelo retornar o indicador False.
+                setattr(self, indicador, True)
+
             elif indicador in self.model_fields_set and not getattr(self, indicador):
                 # model_fields_set identifica os campos fornecidos
                 # explicitamente na criação do objeto.
-                # Se o indicador veio como False, não o promovemos a True.
+                # Uma lista vazia com False explícito permanece pendente,
+                # pois não comprova que o paciente respondeu negativamente.
                 if valor == []:
                     # Lista vazia com indicador explicitamente False
                     # não é tratada como uma negativa confirmada

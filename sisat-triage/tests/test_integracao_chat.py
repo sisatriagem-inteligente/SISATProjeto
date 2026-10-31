@@ -1,16 +1,161 @@
 import unittest
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 from fastapi.testclient import TestClient
 from langchain_core.exceptions import OutputParserException
+from langchain_core.messages import AIMessage, HumanMessage
 
 from app.cognitive_layer.schemas import DadosColetaChat, MensagemChatAgente
+from app.cognitive_layer.mar_ia_agent import interpretar_historico
 from main import app
 
 
 class TestIntegracaoChat(unittest.TestCase):
     def setUp(self):
         self.client = TestClient(app)
+
+    def test_conferencia_recupera_sintoma_e_complementos_literais(self):
+        historico = [HumanMessage(content=(
+            "Estou com dor no estômago, acompanhada de náusea há quatro dias. "
+            "Tenho gastrite diagnosticada e uso omeprazol diariamente."
+        ))]
+        extrator = Mock()
+        extrator.invoke.return_value = DadosColetaChat(
+            queixa_principal="dor no estômago",
+            sintomas=["dor no estômago"],
+            tempo_sintomas="4 dias",
+            informacoes_complementares=[],
+            informacoes_complementares_respondidas=True,
+        )
+
+        dados = interpretar_historico(historico, extrator)
+
+        self.assertEqual(dados.sintomas, ["dor no estômago", "náusea"])
+        self.assertEqual(dados.tempo_sintomas, "há quatro dias")
+        self.assertEqual(
+            dados.informacoes_complementares,
+            ["gastrite diagnosticada", "omeprazol diariamente"],
+        )
+        self.assertTrue(dados.sintomas_respondidos)
+        self.assertTrue(dados.informacoes_complementares_respondidas)
+
+    def test_campo_complementar_vazio_sem_resposta_permanece_pendente(self):
+        historico = [HumanMessage(content=(
+            "Meu nome é Ana e estou com dor de cabeça."
+        ))]
+        extrator = Mock()
+        extrator.invoke.return_value = DadosColetaChat(
+            informacoes_complementares=[],
+            informacoes_complementares_respondidas=True,
+        )
+
+        dados = interpretar_historico(historico, extrator)
+
+        self.assertIsNone(dados.informacoes_complementares)
+        self.assertFalse(dados.informacoes_complementares_respondidas)
+        self.assertIn("informações complementares", dados.campos_pendentes())
+
+    def test_negativa_explicita_confirma_campo_complementar_vazio(self):
+        historico = [
+            AIMessage(content="Possui informações complementares?"),
+            HumanMessage(content="Não tenho nenhuma."),
+        ]
+        extrator = Mock()
+        extrator.invoke.return_value = DadosColetaChat()
+
+        dados = interpretar_historico(historico, extrator)
+
+        self.assertEqual(dados.informacoes_complementares, [])
+        self.assertTrue(dados.informacoes_complementares_respondidas)
+        self.assertNotIn("informações complementares", dados.campos_pendentes())
+
+    def test_recupera_sintomas_explicitos_ligados_por_e(self):
+        historico = [HumanMessage(content=(
+            "Estou com tosse e febre há dois dias."
+        ))]
+        extrator = Mock()
+        extrator.invoke.return_value = DadosColetaChat(
+            queixa_principal="tose",
+            sintomas=[],
+            sintomas_respondidos=True,
+        )
+
+        dados = interpretar_historico(historico, extrator)
+
+        self.assertEqual(dados.sintomas, ["tosse", "febre"])
+        self.assertTrue(dados.sintomas_respondidos)
+
+    def test_remove_sintomas_duplicados_e_recupera_medicamento_a_noite(self):
+        historico = [HumanMessage(content=(
+            "Estou com dor de garganta acompanhada de coriza e tosse há "
+            "três dias. Tenho rinite diagnosticada e uso loratadina à noite."
+        ))]
+        extrator = Mock()
+        extrator.invoke.return_value = DadosColetaChat(
+            queixa_principal="tose e febre",
+            sintomas=[
+                "coriza", "tosse", "coriza e tosse",
+                "dor de garganta acompanhada de coriza",
+            ],
+            informacoes_complementares=[],
+        )
+
+        dados = interpretar_historico(historico, extrator)
+
+        self.assertEqual(dados.sintomas, ["coriza", "tosse", "dor de garganta"])
+        self.assertEqual(
+            dados.informacoes_complementares,
+            ["rinite diagnosticada", "loratadina à noite"],
+        )
+
+    def test_sintomas_vazios_sem_negativa_explicita_permanecem_pendentes(self):
+        historico = [HumanMessage(content="Estou me sentindo indisposto.")]
+        extrator = Mock()
+        extrator.invoke.return_value = DadosColetaChat(
+            sintomas=[],
+            sintomas_respondidos=True,
+        )
+
+        dados = interpretar_historico(historico, extrator)
+
+        self.assertIsNone(dados.sintomas)
+        self.assertFalse(dados.sintomas_respondidos)
+        self.assertIn("sintomas", dados.campos_pendentes())
+
+    def test_resposta_curta_de_intensidade_usa_pergunta_imediatamente_anterior(self):
+        historico = [
+            HumanMessage(content="Estou com dor de cabeça."),
+            HumanMessage(content="Moderada."),
+        ]
+        # Simula o turno imediatamente anterior da MarIA sem chamar o modelo.
+        historico[-1:-1] = [AIMessage(
+            content="Qual é a intensidade da dor: leve, moderada ou intensa?"
+        )]
+        extrator = Mock()
+        extrator.invoke.return_value = DadosColetaChat()
+
+        dados = interpretar_historico(historico, extrator)
+
+        self.assertEqual(dados.intensidade, "moderada")
+        self.assertNotIn("intensidade", dados.campos_pendentes())
+
+    def test_regra_de_intensidade_nao_interpreta_resposta_ambigua_ou_sobrescreve(self):
+        extrator = Mock()
+        historico_ambigua = [
+            AIMessage(content="Qual é a intensidade da dor?"),
+            HumanMessage(content="Mais ou menos."),
+        ]
+        extrator.invoke.return_value = DadosColetaChat()
+        dados_ambiguos = interpretar_historico(historico_ambigua, extrator)
+        self.assertIsNone(dados_ambiguos.intensidade)
+
+        historico_explicita = [
+            AIMessage(content="Qual é a intensidade da dor?"),
+            HumanMessage(content="Moderada."),
+        ]
+        extrator.invoke.return_value = DadosColetaChat(intensidade="intensa")
+        dados_extraidos = interpretar_historico(historico_explicita, extrator)
+        self.assertEqual(dados_extraidos.intensidade, "intensa")
 
     @patch("app.presentation_layer.controller.mensagem_chat_llm")
     @patch("app.presentation_layer.controller.extrator_chat_llm")

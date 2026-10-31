@@ -15,6 +15,46 @@ from app.cognitive_layer.structured_output import gerar_resultado_clinico
 from app.observability import observar_funcao
 from app.langsmith_transport import registrar_configurado
 
+#FallBack
+def _gerar_resumo_conservador(dados_triagem: DadosTriagem) -> ResumoTriagem:
+    sintomas = ", ".join(dados_triagem.sintomas) if dados_triagem.sintomas else "nenhum"
+    complementares = (
+        "; ".join(dados_triagem.informacoes_complementares)
+        if dados_triagem.informacoes_complementares
+        else "nenhuma"
+    )
+    return ResumoTriagem(
+        resumo=(
+            f"Queixa principal: {dados_triagem.queixa_principal}. "
+            f"Sintomas relatados: {sintomas}. "
+            f"Duração informada: {dados_triagem.tempo_sintomas}. "
+            f"Intensidade informada: {dados_triagem.intensidade}. "
+            f"Informações complementares: {complementares}."
+        )
+    )
+
+#Detecta alguns tipos claros de saída proibida ou eco de instruções
+def _resultado_tem_afirmacao_nao_permitida(resultado) -> bool:
+
+    textos = [resultado.resumo_triagem.resumo]
+    textos.extend(
+        f"{hipotese.hipotese} {hipotese.justificativa}"
+        for hipotese in resultado.hipoteses_clinicas_iniciais
+    )
+    texto = " ".join(textos).casefold()
+    marcadores = (
+        "classificação de risco",
+        "prioridade de atendimento",
+        "prescrevo",
+        "não há evidência",
+        "não há sintomas",
+        "não há antecedentes",
+        "não há sinais vitais",
+        "não copie estas instruções",
+        "use somente os dados estruturados",
+    )
+    return any(marcador in texto for marcador in marcadores)
+
 
 # Observa a etapa sem incluir o conteúdo do histórico no registro técnico
 @observar_funcao("extrair_dados", registrar_configurado)
@@ -142,7 +182,6 @@ def validar_dados_node(state: ConversationState) -> dict:
 def gerar_resumo_node(state: ConversationState) -> dict:
     dados_paciente = state.get("dados_paciente")
     dados_triagem = state.get("dados_triagem")
-    messages = state.get("messages", [])
 
     # Não chama o modelo se as estruturas necessárias não estiverem disponíveis.
     if dados_paciente is None or dados_triagem is None:
@@ -152,25 +191,17 @@ def gerar_resumo_node(state: ConversationState) -> dict:
     # Estas orientações não constituem uma validação clínica automática
     orientacoes = SystemMessage(
         content=(
-            "Você auxilia na organização de informações para uma triagem "
-            "de saúde. Gere um resumo fiel aos dados fornecidos e hipóteses "
-            "clínicas iniciais justificadas pelas informações disponíveis. "
-            "Não invente sintomas, duração, intensidade, antecedentes ou "
-            "sinais vitais. Não transforme hipóteses em diagnósticos "
-            "confirmados. Se as informações forem insuficientes, deixe essa "
-            "limitação explícita. Justifique cada hipótese somente com os "
-            "sintomas, duração e demais achados efetivamente relatados; "
-            "identifique-a como possibilidade que exige avaliação profissional. "
-            "A presença de um antecedente ou o uso de um medicamento não "
-            "comprovam relação com a queixa atual: não lhes atribua causa, "
-            "associação ou efeito sem evidência explícita no relato. "
-            "Não transforme dados ausentes em sintomas negados, achados "
-            "normais ou condições descartadas. Se não houver base suficiente "
-            "para formular hipóteses, retorne uma lista vazia de hipóteses "
-            "e registre a limitação no resumo. Não classifique o risco por cores, não "
-            "atribua prioridade de atendimento e não prescreva tratamentos. "
-            "A classificação de risco é responsabilidade de outro componente "
-            "do sistema."
+            "Use somente os dados estruturados abaixo. Não invente, deduza "
+            "nem afirme que um sintoma, antecedente ou sinal vital está ausente "
+            "se isso não foi informado. Não classifique risco, não indique "
+            "prioridade e não prescreva tratamento. "
+            "Escreva um resumo curto seguindo este formato: queixa principal; "
+            "sintomas relatados; duração informada; intensidade informada; "
+            "informações complementares. Use apenas os valores presentes nos "
+            "campos. Não copie estas instruções para a resposta. "
+            "As hipóteses são possibilidades para avaliação profissional, não "
+            "diagnósticos. Justifique cada uma somente com dados presentes. "
+            "Se não houver suporte suficiente, retorne uma lista vazia."
         )
     )
 
@@ -182,16 +213,25 @@ def gerar_resumo_node(state: ConversationState) -> dict:
             f"{dados_paciente.model_dump_json(indent=2)}\n\n"
             "Dados da triagem já coletados:\n"
             f"{dados_triagem.model_dump_json(indent=2)}\n\n"
-            "Use esses dados como referência. Produza somente o resumo e "
+            "Produza somente o resumo e "
             "as hipóteses clínicas iniciais no formato estruturado solicitado."
         )
     )
 
-    # Envia as instruções, o histórico e os dados de referência
-    # Uma única chamada devolve os dois componentes de ResultadoClinico
+    # Envia somente instruções e dados já estruturados, sem o histórico bruto.
+    # Uma única chamada devolve resumo e hipóteses em ResultadoClinico.
     resultado = gerar_resultado_clinico(
-        [orientacoes, *messages, contexto]
+        [SystemMessage(content=f"{orientacoes.content}\n\n{contexto.content}")]
     )
+
+    # Se o modelo emitir conteúdo claramente fora do escopo, usa um resumo
+    # montado somente com os campos coletados e não devolve hipóteses geradas
+    # pela mesma resposta
+    if _resultado_tem_afirmacao_nao_permitida(resultado):
+        return {
+            "resumo_triagem": _gerar_resumo_conservador(dados_triagem),
+            "hipoteses_clinicas": [],
+        }
 
     # Atualiza os campos do estado que serão utilizados na montagem da ficha
     return {
