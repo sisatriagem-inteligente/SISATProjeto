@@ -19,6 +19,7 @@ from langchain_core.exceptions import OutputParserException
 from langchain_core.messages import SystemMessage
 from app.cognitive_layer.prompts import SYSTEM_PROMPT
 from app.cognitive_layer.schemas import DadosColetaChat, MensagemChatAgente
+from app.local_llm_debug import registrar_chamada_llm, registrar_saida
 from langchain.agents import create_agent
 
 # Configura o modelo de linguagem utilizado pela MarIA.
@@ -139,8 +140,14 @@ def interpretar_historico(historico, extrator=None):
     mensagens = [SystemMessage(content=EXTRACAO_SYSTEM_PROMPT), *historico]
     for tentativa in range(2):
         try:
-            dados = modelo_extrator.invoke(mensagens)
-            return _conferir_fatos_explicitos(dados, historico)
+            with registrar_chamada_llm(
+                f"extracao (tentativa {tentativa + 1})", mensagens
+            ):
+                dados = modelo_extrator.invoke(mensagens)
+            registrar_saida("extracao bruta", dados)
+            dados_conferidos = _conferir_fatos_explicitos(dados, historico)
+            registrar_saida("extracao conferida", dados_conferidos)
+            return dados_conferidos
         except (OutputParserException, ValueError):
             if tentativa:
                 raise OutputParserException(

@@ -14,6 +14,7 @@ from app.cognitive_layer.mar_ia_agent import (
 from app.cognitive_layer.structured_output import gerar_resultado_clinico
 from app.observability import observar_funcao
 from app.langsmith_transport import registrar_configurado
+from app.local_llm_debug import depurar_etapa
 
 #FallBack
 def _gerar_resumo_conservador(dados_triagem: DadosTriagem) -> ResumoTriagem:
@@ -58,6 +59,7 @@ def _resultado_tem_afirmacao_nao_permitida(resultado) -> bool:
 
 # Observa a etapa sem incluir o conteúdo do histórico no registro técnico
 @observar_funcao("extrair_dados", registrar_configurado)
+@depurar_etapa("nó extrair_dados")
 def extrair_dados_node(state: ConversationState) -> dict:
     # Recupera as mensagens recebidas nesta execução
     messages = state.get("messages", [])
@@ -94,6 +96,7 @@ def extrair_dados_node(state: ConversationState) -> dict:
 
 # Organiza os dados pessoais disponíveis no resultado da extração
 @observar_funcao("coletar_paciente", registrar_configurado)
+@depurar_etapa("nó coletar_paciente")
 def coletar_paciente_node(state: ConversationState) -> dict:
     dados = state.get("dados_extraidos")
 
@@ -118,6 +121,7 @@ def coletar_paciente_node(state: ConversationState) -> dict:
 
 # Organiza os dados da triagem disponíveis no resultado da extração
 @observar_funcao("coletar_triagem", registrar_configurado)      # Registra a execução técnica da etapa para envio ao LangSmith, quando habilitado
+@depurar_etapa("nó coletar_triagem")
 def coletar_triagem_node(state: ConversationState) -> dict:
     dados = state.get("dados_extraidos")
 
@@ -152,6 +156,7 @@ def coletar_triagem_node(state: ConversationState) -> dict:
 
 # Confere se todos os campos necessários foram coletados.
 @observar_funcao("validar_dados", registrar_configurado)
+@depurar_etapa("nó validar_dados")
 def validar_dados_node(state: ConversationState) -> dict:
     dados = state.get("dados_extraidos")
 
@@ -179,6 +184,7 @@ def validar_dados_node(state: ConversationState) -> dict:
 
 # Gera o resumo e as hipóteses clínicas em uma única chamada ao modelo.
 @observar_funcao("gerar_resumo", registrar_configurado)
+@depurar_etapa("nó gerar_resumo")
 def gerar_resumo_node(state: ConversationState) -> dict:
     dados_paciente = state.get("dados_paciente")
     dados_triagem = state.get("dados_triagem")
@@ -242,6 +248,7 @@ def gerar_resumo_node(state: ConversationState) -> dict:
 
 # Mantém o nó no grafo atual; a geração conjunta já ocorreu acima
 @observar_funcao("gerar_hipoteses", registrar_configurado)
+@depurar_etapa("nó gerar_hipoteses")
 def gerar_hipoteses_node(state: ConversationState) -> dict:
     # As hipóteses já foram produzidas junto ao resumo no nó anterior
     # Mantém esta etapa na sequência sem atualizar o estado
@@ -250,6 +257,7 @@ def gerar_hipoteses_node(state: ConversationState) -> dict:
 
 # Monta a resposta final usando os dados organizados pelos nós anteriores
 @observar_funcao("finalizar", registrar_configurado)
+@depurar_etapa("nó finalizar")
 def finalizar_node(state: ConversationState) -> dict:
     # Recupera os resultados disponibilizados pelos nós anteriores
     dados_paciente = state.get("dados_paciente")

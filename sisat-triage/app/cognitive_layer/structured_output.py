@@ -1,6 +1,7 @@
 # Configura a saída estruturada dos resultados clínicos da MarIA.
 from app.cognitive_layer.schemas import ResultadoClinico
 from app.cognitive_layer.mar_ia_agent import llm
+from app.local_llm_debug import registrar_chamada_llm, registrar_saida
 
 
 # Configura a saída do modelo conforme o schema ResultadoClinico,
@@ -12,5 +13,7 @@ structured_clinical_llm = llm.with_structured_output(ResultadoClinico)
 def gerar_resultado_clinico(messages) -> ResultadoClinico:
     # Executa a geração com as mensagens preparadas pelo nó gerar_resumo
     # A integração interpreta e valida a saída conforme o modelo Pydantic
-    resposta: ResultadoClinico = structured_clinical_llm.invoke(messages)
+    with registrar_chamada_llm("geracao do resultado clinico", messages):
+        resposta: ResultadoClinico = structured_clinical_llm.invoke(messages)
+    registrar_saida("geracao do resultado clinico", resposta)
     return resposta
